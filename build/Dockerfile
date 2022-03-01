@@ -12,6 +12,9 @@ RUN apk add git
 RUN go install -v golang.org/x/tools/gopls@latest
 RUN go install -v github.com/ramya-rao-a/go-outline@latest
 
+# DBマイグレーションツールのインストール
+RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+
 # Golang ホットリロードするためインストールする
 RUN go get -u github.com/cosmtrek/air
 
