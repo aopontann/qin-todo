@@ -11,7 +11,8 @@ services:
     tty: true
     # ホストPCとコンテナ内とのデータの同期
     volumes:
-      - ./cmd:/app
+      - ./cmd:/app/cmd
+      - ./db:/app/db
     ports:
       - 18080:8080
     depends_on:
@@ -40,3 +41,18 @@ services:
       # - ./docker/db/sql:/docker-entrypoint-initdb.d #何かわからん。dbの初期化に関係してそう。とりあえず、コメント化しておく
     ports:
       - 13306:3306
+
+  # openapi:
+  #   image: openapitools/openapi-generator-cli
+  #   tty: true
+  #   command:  generate -i /local/qin-todo.yaml -g go -o /project/out
+  #   volumes:
+  #     - ./api:/local
+  #     - ./api:/project
+
+  # demo:
+  #   image: golang:1.17
+  #   container_name: demo
+  #   tty: true
+  #   volumes:
+  #       - ./api:/api
