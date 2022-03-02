@@ -1,6 +1,7 @@
 # Qin Todo バックエンド
 
-### セットアップ
+## セットアップ
+### API
 1. リポジトリのクローン
 ```
 $ git clone https://github.com/qin-todo-team-l/qin-todo-backend
@@ -14,4 +15,21 @@ $ docker-compose up -d
 $ curl http://localhost:18080/ping
 ```
 
-DBの接続部分は後で書き足します...
+### DB
+1. DBマイグレーション
+```
+$ goose -dir=tools/database/migrations mysql "user1:pass@tcp(mysql:3306)/qin-todo" up
+```
+2. デモデータの作成（準備中）
+```
+$ go run tools/database/seed.go
+```
+
+### 技術
+- [Gin](https://github.com/gin-gonic/gin)
+- [MySQL](https://www.mysql.com/jp/)
+- [database/sql](https://pkg.go.dev/database/sql)
+- [goose](https://github.com/pressly/goose)
+- [air](https://github.com/cosmtrek/air)
+- [docker](https://www.docker.com/)
+- [docker-compose](https://docs.docker.com/compose/)
