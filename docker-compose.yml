@@ -12,7 +12,7 @@ services:
     # ホストPCとコンテナ内とのデータの同期
     volumes:
       - ./cmd:/app/cmd
-      - ./db:/app/db
+      - ./tools:/app/tools
     ports:
       - 18080:8080
     depends_on:
@@ -36,8 +36,8 @@ services:
     command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci #mysqlで日本語を使うようにする設定だと思う。
     # mysqlのデータをホストPCに同期（コンテナが消えてしまってもホストPCにデータが残る）
     volumes:
-      - ./docker/db/data:/var/lib/mysql #テーブルデータ
-      - ./docker/db/my.cnf:/etc/mysql/conf.d/my.cnf #設定データ
+      - ./tools/docker/db/mysql_data:/var/lib/mysql #テーブルデータ
+      - ./tools/docker/db/my.cnf:/etc/mysql/conf.d/my.cnf #設定データ
       # - ./docker/db/sql:/docker-entrypoint-initdb.d #何かわからん。dbの初期化に関係してそう。とりあえず、コメント化しておく
     ports:
       - 13306:3306
