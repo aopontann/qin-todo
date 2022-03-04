@@ -3,142 +3,231 @@ info:
   version: 0.0.1
   title: qin-todo
   description: demo
-# 以下はサンプル
+servers:
+  # - url: https://example.com/api/v0
+  #   description: プロダクション API
+  - url: http://{host}:{port}/api/v0
+    description: 開発用
+    variables:
+      host:
+        default: localhost
+      port:
+        default: '10080'
 paths:
-  /pets:
+  /todos:
     get:
-      summary: Returns all pets
-      description: |
-        Returns all pets from the system that the user has access to
-        Nam sed condimentum est. Maecenas tempor sagittis sapien, nec rhoncus sem sagittis sit amet. Aenean at gravida augue, ac iaculis sem. Curabitur odio lorem, ornare eget elementum nec, cursus id lectus. Duis mi turpis, pulvinar ac eros ac, tincidunt varius justo. In hac habitasse platea dictumst. Integer at adipiscing ante, a sagittis ligula. Aenean pharetra tempor ante molestie imperdiet. Vivamus id aliquam diam. Cras quis velit non tortor eleifend sagittis. Praesent at enim pharetra urna volutpat venenatis eget eget mauris. In eleifend fermentum facilisis. Praesent enim enim, gravida ac sodales sed, placerat id erat. Suspendisse lacus dolor, consectetur non augue vel, vehicula interdum libero. Morbi euismod sagittis libero sed lacinia.
-        Sed tempus felis lobortis leo pulvinar rutrum. Nam mattis velit nisl, eu condimentum ligula luctus nec. Phasellus semper velit eget aliquet faucibus. In a mattis elit. Phasellus vel urna viverra, condimentum lorem id, rhoncus nibh. Ut pellentesque posuere elementum. Sed a varius odio. Morbi rhoncus ligula libero, vel eleifend nunc tristique vitae. Fusce et sem dui. Aenean nec scelerisque tortor. Fusce malesuada accumsan magna vel tempus. Quisque mollis felis eu dolor tristique, sit amet auctor felis gravida. Sed libero lorem, molestie sed nisl in, accumsan tempor nisi. Fusce sollicitudin massa ut lacinia mattis. Sed vel eleifend lorem. Pellentesque vitae felis pretium, pulvinar elit eu, euismod sapien.
-      operationId: findPets
-      parameters:
-        - name: tags
-          in: query
-          description: tags to filter by
-          required: false
-          style: form
-          schema:
-            type: array
-            items:
-              type: string
-        - name: limit
-          in: query
-          description: maximum number of results to return
-          required: false
-          schema:
-            type: integer
-            format: int32
+      summary: 全てのTodoを取得する
       responses:
         '200':
-          description: pet response
+          description: Todoの配列を返す
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Pet'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+                  $ref: '#/components/schemas/Todos'
+      tags:
+        - todos
+
     post:
-      summary: Creates a new pet
-      description: Creates a new pet in the store. Duplicates are allowed
+      summary: Todoを作成する
       operationId: addPet
       requestBody:
-        description: Pet to add to the store
+        description: Todoを作成する
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewPet'
+              $ref: '#/components/schemas/NewTodo'
       responses:
-        '200':
-          description: pet response
+        '201':
+          description: Todoの作成に成功しました
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Pet'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Todos'
         default:
-          description: unexpected error
+          description: エラーが発生しました
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /pets/{id}:
-    get:
-      summary: Returns a pet by ID
-      description: Returns a pet based on a single ID
-      operationId: findPetByID
+      tags:
+        - todos
+
+  /todos/{todo_id}:
+    put:
+      summary: Todoを更新する
       parameters:
-        - name: id
+        - name: todo_id
           in: path
-          description: ID of pet to fetch
+          description: Todoのid
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+      requestBody:
+        description: Todoを更新する
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewTodo'
       responses:
         '200':
-          description: pet response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Pet'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          description: Todoを更新しました
+      tags:
+        - todos
+
     delete:
-      summary: Deletes a pet by ID
-      description: deletes a single pet based on the ID supplied
-      operationId: deletePet
+      summary: Todoを削除する
       parameters:
-        - name: id
+        - name: todo_id
           in: path
-          description: ID of pet to delete
+          description: Todoのid
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
       responses:
-        '204':
-          description: pet deleted
-        default:
-          description: unexpected error
+        '200':
+          description: Todoを削除しました
+      tags:
+        - todos
+
+  /users/{user_id}:
+    get:
+      summary: ユーザー情報を取得する
+      parameters:
+        - name: user_id
+          in: path
+          description: ユーザーid
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ユーザー情報
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                  $ref: '#/components/schemas/User'
+      tags:
+      - users
+
+    put:
+      summary: ユーザー情報を更新する（アイコンURLと名前）
+      parameters:
+        - name: user_id
+          in: path
+          description: ユーザーid
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: ユーザー情報を更新しました
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUser'
+      responses:
+        '200':
+          description: ユーザー情報
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/User'
+      tags:
+      - users
+
+tags:
+- name: users
+  description: ユーザーに関するAPI群です
+- name: todos
+  description: Todoに関するAPI群です
+
 components:
   schemas:
-    Pet:
-      allOf:
-        - $ref: '#/components/schemas/NewPet'
-        - required:
-          - id
-          properties:
-            id:
-              type: integer
-              format: int64
-              description: Unique id of the pet
+    NewTodo:
+      required:
+        - content
+        - execution_date
+      properties:
+        content:
+          type: string
+          description: Todoの内容
+        execution_date:
+          type: string
+          example: 'today'
+          format: date-time
+          description: Todoをやる予定の日付
 
-    NewPet:
+    Todos:
+      description: Todo
+      properties:
+        todo_id:
+          type: string
+          description: todoのid
+        content:
+          type: string
+          description: Todoの内容
+          example: 洗濯物を干す
+          maxLength: 255
+        completed:
+          type: boolean
+          description: Todoが完了しているかどうか（trueなら完了している）
+          example: false
+        execution_date:
+          type: string
+          example: today
+          enum:
+            - today
+            - tomorrow
+            - later
+          description: Todoをやる予定の日付
+        created_at:
+          type: string
+          example: '2020-01-30T23:59:59+09:00'
+          format: date-time
+          description: Todoが作成された日付
+
+    User:
+      description: ユーザー
+      properties:
+        user_id:
+          type: string
+          description: ユーザーid
+        name:
+          type: string
+          description: ユーザー名
+          maxLength: 255
+          example: RINKA
+        email:
+          type: string
+          format: email
+          description: メールアドレス
+          maxLength: 255
+          example: test@example.com
+        iconURL:
+          type: string
+          description: アイコンのURL
+          maxLength: 255
+
+    UpdateUser:
       required:
         - name
+        - iconURL
       properties:
         name:
           type: string
-          description: Name of the pet
-        tag:
+          description: ユーザー名
+          maxLength: 255
+          example: RINKA
+        iconURL:
           type: string
-          description: Type of the pet
+          description: アイコンのURL
+          maxLength: 255
 
     Error:
       required:
