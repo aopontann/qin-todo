@@ -12,7 +12,7 @@ servers:
       host:
         default: localhost
       port:
-        default: '10080'
+        default: '18081'
 paths:
   /todos:
     get:
