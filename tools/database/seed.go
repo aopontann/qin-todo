@@ -19,32 +19,35 @@ func main() {
 	if err != nil {
 		fmt.Println("Pingエラー")
 	}
+	// トランザクション
+	tx, err := db.Begin()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer tx.Rollback()
+	// todoテーブルの全データ削除
+	_, err = tx.Exec("DELETE FROM todo_list")
+	if err != nil {
+		log.Fatal(err)
+	}
+	// usersテーブルの全データ削除 TRUNCATE TABLE users 使えんかった
+	_, err = tx.Exec("DELETE FROM users")
+	if err != nil {
+		log.Fatal(err)
+	}
 	// デモユーザーデータを追加
-	stmt, err := db.Prepare("INSERT INTO users(id, name, email, password) VALUES(?,?,?,?)")
+	_, err = tx.Exec("INSERT INTO users(id, name, email, password) VALUES('1','太郎','abc@example.com','pass1'), ('2','二郎','def@example.com','pass2'), ('3','alex','ghi@example.com','pass3')")
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := stmt.Exec("2", "太郎", "def@example.com", "123")
-	if err != nil {
-		log.Fatal(err)
-	}
-	lastId, err := res.LastInsertId()
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Printf("ID = %d\n", lastId)
 	// デモtodoデータを追加
-	stmtTodo, err := db.Prepare("INSERT INTO todo_list(id, content, execution_date, user_id) VALUES(?,?,?,?)")
+	_, err = tx.Exec("INSERT INTO todo_list(id, content, completed, execution_date, user_id) VALUES('1', 'デモ1', false, '2019-10-04 00:00:00', '1'), ('2', 'デモ2', true, '2019-10-05 00:00:00', '1'), ('3', 'デモ3', false, '2019-10-06 00:00:00', '2')")
 	if err != nil {
 		log.Fatal(err)
 	}
-	resTodo, err := stmtTodo.Exec("2", "テスト", "2019-10-04 15:25:07", "1")
+	// コミット
+	err = tx.Commit()
 	if err != nil {
 		log.Fatal(err)
 	}
-	todoLastId, err := resTodo.LastInsertId()
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Printf("todoID = %d\n", todoLastId)
 }
