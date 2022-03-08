@@ -12,7 +12,7 @@ services:
     # ホストPCとコンテナ内とのデータの同期
     volumes:
       - ./cmd:/app/cmd
-      - ./tools:/app/tools
+      - ./tools/database:/app/tools/database
     ports:
       - 18080:8080
     depends_on:
