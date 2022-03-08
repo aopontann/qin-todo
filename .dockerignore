@@ -2,7 +2,7 @@
 .vscode
 api
 build
-docker
+tools/docker
 
 README.md
 docker-compose.yml
