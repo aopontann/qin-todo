@@ -1,0 +1,10 @@
+# DockerfileでCOPYしたくないディレクトリ
+.vscode
+api
+build
+tools/docker
+
+README.md
+docker-compose.yml
+.gitignore
+.dockerignore

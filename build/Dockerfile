@@ -4,13 +4,23 @@ FROM golang:1.17-alpine
 
 WORKDIR /app
 
-# gitをインストール(vscodeの拡張機能「remote - Containers」を使って開発する場合インストールする)
-RUN apk add git
+COPY go.mod ./
+COPY go.sum ./
+
+RUN go mod download
+
+COPY . ./
+
+# airの設定ファイルをコンテナのウォークディレクトリにコピー
+COPY configs/ .
+
+# gitをインストール(vscodeの拡張機能「remote - Containers」を使って開発する場合)
+# RUN apk add git
 
 # Goの拡張機能のインストール
 # vscode上でもインストールできるから書かなくてもいいかも
-RUN go install -v golang.org/x/tools/gopls@latest
-RUN go install -v github.com/ramya-rao-a/go-outline@latest
+# RUN go install -v golang.org/x/tools/gopls@latest
+# RUN go install -v github.com/ramya-rao-a/go-outline@latest
 
 # DBマイグレーションツールのインストール
 RUN go install github.com/pressly/goose/v3/cmd/goose@latest

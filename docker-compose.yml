@@ -12,13 +12,13 @@ services:
     # ホストPCとコンテナ内とのデータの同期
     volumes:
       - ./cmd:/app/cmd
-      - ./tools:/app/tools
+      - ./tools/database:/app/tools/database
     ports:
       - 18080:8080
     depends_on:
       - db
     # 開発環境の起動
-    command: air
+    command: "air -c .air.toml"
 
   db: # qin-memo-backendのやつを参考にする
     image: mysql:5.7 # mysql:8.0でもいいかも
@@ -42,17 +42,11 @@ services:
     ports:
       - 13306:3306
 
-  # openapi:
-  #   image: openapitools/openapi-generator-cli
-  #   tty: true
-  #   command:  generate -i /local/qin-todo.yaml -g go -o /project/out
-  #   volumes:
-  #     - ./api:/local
-  #     - ./api:/project
-
-  # demo:
-  #   image: golang:1.17
-  #   container_name: demo
-  #   tty: true
-  #   volumes:
-  #       - ./api:/api
+  prism:
+    image: stoplight/prism:4
+    command: 'mock -h 0.0.0.0 /tmp/qin-todo.yaml'
+    volumes:
+      - ./api/qin-todo.yaml:/tmp/qin-todo.yaml:ro
+    ports:
+      # Serve the mocked API locally as available on port 8080
+      - '18081:4010'
