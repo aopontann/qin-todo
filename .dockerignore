@@ -3,6 +3,7 @@
 api
 build
 tools/docker
+web
 
 README.md
 docker-compose.yml
