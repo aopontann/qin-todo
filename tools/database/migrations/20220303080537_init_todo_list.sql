@@ -14,5 +14,5 @@ CREATE TABLE todo_list(
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE todo_list;
+DROP TABLE IF EXISTS todo_list;
 -- +goose StatementEnd
