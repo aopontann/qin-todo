@@ -128,6 +128,9 @@ const Home: NextPage = () => {
               </button>
             </li>
           ))}
+          <li className={todos.length ? 'hidden md:block' : ''}>
+            <button onClick={() => ref.current?.focus()}>タスクを追加する</button>
+          </li>
         </ul>
       </Body>
 
