@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE todo_list(
+CREATE TABLE IF NOT EXISTS todo_list(
   id VARCHAR(26) PRIMARY KEY NOT NULL,
   content VARCHAR(255) NOT NULL,
   completed bit(1) NOT NULL DEFAULT false,
