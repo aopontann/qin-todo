@@ -1,22 +1,51 @@
 package main
 
 import (
+	"database/sql"
+	"encoding/json"
+	"fmt"
+	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
+	"github.com/oklog/ulid/v2"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
 
+type GoogleUserInfo struct {
+	ID            string `json:"id"`
+	Email         string `json:"email"`
+	VerifiedEmail bool   `json:"verified_email"`
+	Name          string `json:"name"`
+	GivenName     string `json:"given_name"`
+	FamilyName    string `json:"family_name"`
+	Picture       string `json:"picture"`
+	Locale        string `json:"locale"`
+}
+
 func main() {
 	err := godotenv.Load()
-  if err != nil {
-    log.Fatal("Error loading .env file")
-  }
-
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	// DB接続
+	db, err := sql.Open("mysql", "user1:pass@tcp(mysql:3306)/qin-todo")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	err = db.Ping()
+	if err != nil {
+		log.Fatal(err)
+	}
+	// OAuth設定
 	conf := &oauth2.Config{
 		ClientID:     os.Getenv("CLIENT_ID"),
 		ClientSecret: os.Getenv("SECRET_KEY"),
@@ -43,6 +72,7 @@ func main() {
 			url := conf.AuthCodeURL("state", oauth2.AccessTypeOffline)
 			c.Redirect(http.StatusMovedPermanently, url)
 		})
+
 		// トークン取得エンドポイント
 		auth.GET("/token", func(c *gin.Context) {
 			code := c.Query("code")
@@ -51,7 +81,41 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			c.JSON(200, tok)
+
+			// トークンを使ってgoogleアカウント情報を取得する
+			resp, err := http.Get("https://www.googleapis.com/oauth2/v1/userinfo?access_token=" + tok.AccessToken)
+			if err != nil {
+				log.Fatal(err)
+			}
+			// これやる意味わかってない...
+			defer resp.Body.Close()
+
+			var r io.Reader = resp.Body
+			r = io.TeeReader(r, os.Stderr)
+
+			var userInfo GoogleUserInfo
+			err = json.NewDecoder(r).Decode(&userInfo)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			// ULIDの作成
+			t := time.Unix(1000000, 0)
+			entropy := ulid.Monotonic(rand.New(rand.NewSource(t.UnixNano())), 0)
+			id := ulid.MustNew(ulid.Timestamp(t), entropy)
+
+			// googleアカウント情報をDBに保存する
+			// Go言語にテンプレートリテラルがないためこんな実装になった
+			values := fmt.Sprintf("('%s', '%s', '%s', '%s', '%s')", id, userInfo.Name, userInfo.Email, userInfo.Picture, tok.AccessToken)
+			_, err = db.Exec("INSERT IGNORE INTO users (id, name, email, avatar_url, token) VALUES " + values)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			c.JSON(200, gin.H{
+				"tok":  tok,
+				"body": userInfo,
+			})
 		})
 	}
 
