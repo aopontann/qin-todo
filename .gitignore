@@ -1,2 +1,6 @@
 mysql_data
 tmp
+.env
+client_secret.json
+token.json
+.DS_Store

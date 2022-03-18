@@ -36,7 +36,7 @@ func main() {
 		log.Fatal(err)
 	}
 	// デモユーザーデータを追加
-	_, err = tx.Exec("INSERT INTO users(id, name, email, password) VALUES('1','太郎','abc@example.com','pass1'), ('2','二郎','def@example.com','pass2'), ('3','alex','ghi@example.com','pass3')")
+	_, err = tx.Exec("INSERT INTO users(id, name, email, password, token, avatar_url) VALUES('1','太郎','abc@example.com','pass1', 'token1', 'https://lh3.googleusercontent.com/a-/AOh14Gg7m3sGmgDctni57nyWg6ATJLrSJNeT4mKIPtb_lxo=s96-c'), ('2','二郎','def@example.com','pass2', 'token2', 'https://lh3.googleusercontent.com/a-/AOh14Gg7m3sGmgDctni57nyWg6ATJLrSJNeT4mKIPtb_lxo=s96-c'), ('3','alex','ghi@example.com','pass3', 'token3', 'https://lh3.googleusercontent.com/a-/AOh14Gg7m3sGmgDctni57nyWg6ATJLrSJNeT4mKIPtb_lxo=s96-c')")
 	if err != nil {
 		log.Fatal(err)
 	}

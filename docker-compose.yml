@@ -13,6 +13,8 @@ services:
     volumes:
       - ./cmd:/app/cmd
       - ./tools/database:/app/tools/database
+      - ./go.mod:/app/go.mod
+      - ./go.sum:/app/go.sum
     ports:
       - 18080:8080
     depends_on:
