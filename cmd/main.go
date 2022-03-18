@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"math/rand"
@@ -100,19 +99,20 @@ func main() {
 			}
 
 			// ULIDの作成
-			t := time.Unix(1000000, 0)
+			t := time.Now()
 			entropy := ulid.Monotonic(rand.New(rand.NewSource(t.UnixNano())), 0)
 			id := ulid.MustNew(ulid.Timestamp(t), entropy)
 
 			// googleアカウント情報をDBに保存する
-			// Go言語にテンプレートリテラルがないためこんな実装になった
-			values := fmt.Sprintf("('%s', '%s', '%s', '%s', '%s')", id, userInfo.Name, userInfo.Email, userInfo.Picture, tok.AccessToken)
-			_, err = db.Exec("INSERT IGNORE INTO users (id, name, email, avatar_url, token) VALUES " + values)
+			// id.String()とすることで正常に保存できるようになった。普通のidもulidを返しているが、
+			// valuesにidを指定すると空白で保存される現象が発生した
+			_, err = db.Exec("INSERT IGNORE INTO users (id, name, email, avatar_url, token) VALUES (?, ?, ?, ?, ?)", id.String(), userInfo.Name, userInfo.Email, userInfo.Picture, tok.AccessToken)
 			if err != nil {
 				log.Fatal(err)
 			}
 
 			c.JSON(200, gin.H{
+				"ulid": id,
 				"tok":  tok,
 				"body": userInfo,
 			})
