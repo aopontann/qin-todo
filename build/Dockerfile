@@ -9,6 +9,12 @@ COPY go.sum ./
 
 RUN go mod download
 
+# DBマイグレーションツールのインストール
+RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+
+# Golang ホットリロードするためインストールする
+RUN go get -u github.com/cosmtrek/air
+
 COPY . ./
 
 # airの設定ファイルをコンテナのウォークディレクトリにコピー
@@ -22,11 +28,6 @@ COPY configs/ .
 # RUN go install -v golang.org/x/tools/gopls@latest
 # RUN go install -v github.com/ramya-rao-a/go-outline@latest
 
-# DBマイグレーションツールのインストール
-RUN go install github.com/pressly/goose/v3/cmd/goose@latest
-
-# Golang ホットリロードするためインストールする
-RUN go get -u github.com/cosmtrek/air
 
 # ホットリロード機能が付いた開発環境を起動
 CMD [ "air" ]
