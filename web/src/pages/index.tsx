@@ -4,8 +4,8 @@ import styles from 'styles/Home.module.css';
 import { Header } from 'component/Header';
 import { Footer } from 'component/Footer';
 import { Body } from 'component/Body';
-import { TodosList } from 'component/TodosList';
 import { ChangeEventHandler, useRef, useState } from 'react';
+import moment from 'moment';
 
 interface Todos {
   id: number;
@@ -18,26 +18,100 @@ type Update = {
   id: number;
 };
 
-const Home: NextPage = () => {
-  // 破棄予定
-  // const todosList = [
-  //   {
-  //     title: '今日する',
-  //     category: 'today',
-  //     todos: ['ESLintのインストール'],
-  //   },
-  //   {
-  //     title: '明日する',
-  //     category: 'tomorrow',
-  //     todos: ['来週の飲み会の場所を決める', 'Next.jsのチュートリアルを見る'],
-  //   },
-  //   {
-  //     title: '今度する',
-  //     category: 'next time',
-  //     todos: [],
-  //   },
-  // ];
+// 仮
+type Items = {
+  id: string;
+  content: string;
+  completed: boolean;
+  execution_date: string | null;
+}[];
 
+// apiレスポンス
+const data: { items: Items } = {
+  items: [
+    {
+      id: 'id001',
+      content: '買い物する',
+      completed: false,
+      execution_date: '2019-10-06 00:00:00',
+    },
+    {
+      id: 'id002',
+      content: '洗濯物を干す',
+      completed: true,
+      execution_date: null,
+    },
+    {
+      id: 'id003',
+      content: '明日する',
+      completed: true,
+      execution_date: moment().startOf('day').add({ days: 1 }).format(), // テスト用 常に明日の日付になる
+    },
+  ],
+};
+
+/*
+  execution_dateが明日か検証して出し分ける
+  明日なら「明日やる」
+  明日じゃないなら「今日やる」
+  ※ 過去はすべて今日やるタスク、明日以降の未来は扱わない。
+  nullは「今度やる」
+*/
+
+// 明日か判別する、nullはそもそも入れさせない。
+const validationTommorow = (data: string): boolean => {
+  // 現在からみて明日を取得する
+  const tomorrow = moment().startOf('day').add({ days: 1 }).format();
+  // 引数がtomorrowと同じ日付か検証する
+  return moment(data).isSame(tomorrow, 'day');
+};
+
+// UTCをJST日本標準時に変換する
+const formatToJST = (UTCDate: string): string => moment.utc(UTCDate).local().format();
+
+type TodosList = {
+  label: string;
+  color: string;
+  todos: Items;
+}[];
+
+// フロントで扱いやすいように加工する
+const todosList: TodosList = [
+  {
+    label: '今日やる',
+    color: '#F43F5E',
+    todos: [
+      ...data.items.filter((item) => {
+        const date = item.execution_date;
+        // 明日じゃないなら入れる
+        return date === null ? false : !validationTommorow(formatToJST(date));
+      }),
+    ],
+  },
+  {
+    label: '明日やる',
+    color: '#FB923C',
+    todos: [
+      ...data.items.filter((item) => {
+        const date = item.execution_date;
+        // 明日なら入れる
+        return date === null ? false : validationTommorow(formatToJST(date));
+      }),
+    ],
+  },
+  {
+    label: '今度やる',
+    color: '#FBBF24',
+    todos: [
+      ...data.items.filter((item) => {
+        // nullなら入れる
+        return item.execution_date === null;
+      }),
+    ],
+  },
+];
+
+const Home: NextPage = () => {
   const ref = useRef<HTMLInputElement>(null);
   const [text, setText] = useState('');
   const [todos, setTodos] = useState<Todos[]>([]);
@@ -115,9 +189,7 @@ const Home: NextPage = () => {
       <Header></Header>
 
       <Body>
-        {/* 廃棄予定
-        <TodosList todosList={todosList} /> */}
-
+        {/* 出しわけ出来次第削除予定
         <ul>
           {todos.map((todo, index) => (
             <li key={todo.id}>
@@ -131,7 +203,25 @@ const Home: NextPage = () => {
           <li className={todos.length ? 'hidden md:block' : ''}>
             <button onClick={() => ref.current?.focus()}>タスクを追加する</button>
           </li>
-        </ul>
+        </ul> */}
+
+        {todosList.map((todosItem, index) => (
+          <section key={index}>
+            <h2>{todosItem.label}</h2>
+            <ul>
+              {todosItem.todos.map((todo) => (
+                <li key={todo.id}>
+                  <input type='checkbox' />
+                  <button>{todo.content}</button>
+                  <button>削除</button>
+                </li>
+              ))}
+              <li className={todosItem.todos.length ? 'hidden md:block' : ''}>
+                <button onClick={() => ref.current?.focus()}>タスクを追加する</button>
+              </li>
+            </ul>
+          </section>
+        ))}
       </Body>
 
       <Footer>
