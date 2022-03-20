@@ -5,7 +5,7 @@ import { Header } from 'component/Header';
 import { Footer } from 'component/Footer';
 import { Body } from 'component/Body';
 import { ChangeEventHandler, useEffect, useRef, useState } from 'react';
-import { addDays, isSameDay, startOfDay } from 'date-fns';
+import { addDays, isSameDay, startOfDay, subMinutes } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 
 type Items = {
@@ -89,14 +89,15 @@ const Home: NextPage = () => {
   */
 
   // 日付の形式
-  const Dateformat = 'yyyy-MM-dd HH:mm:ss';
+  const dateFormat = 'yyyy-MM-dd HH:mm:ss';
   // 明日か判別する、nullはそもそも入れさせない。
   const validationTommorow = (date: string): boolean => {
     const argDate = new Date(date);
+    const formatArgDate = subMinutes(argDate, argDate.getTimezoneOffset());
     // 現在からみて明日を取得する
     const tomorrow = startOfDay(addDays(new Date(), 1));
     // 引数がtomorrowと同じ日付か検証する
-    return isSameDay(argDate, tomorrow);
+    return isSameDay(formatArgDate, tomorrow);
   };
 
   // タスクを追加する
@@ -106,9 +107,9 @@ const Home: NextPage = () => {
     const date = (): string | null => {
       switch (label) {
         case todosList[0].label:
-          return formatInTimeZone(new Date(), 'UTC', Dateformat);
+          return formatInTimeZone(new Date(), 'UTC', dateFormat);
         case todosList[1].label:
-          return formatInTimeZone(addDays(new Date(), 1), 'UTC', Dateformat);
+          return formatInTimeZone(addDays(new Date(), 1), 'UTC', dateFormat);
         default:
           return null;
       }
@@ -159,9 +160,9 @@ const Home: NextPage = () => {
     const date = (): string | null => {
       switch (label) {
         case todosList[0].label:
-          return formatInTimeZone(new Date(), 'UTC', Dateformat);
+          return formatInTimeZone(new Date(), 'UTC', dateFormat);
         case todosList[1].label:
-          return formatInTimeZone(addDays(new Date(), 1), 'UTC', Dateformat);
+          return formatInTimeZone(addDays(new Date(), 1), 'UTC', dateFormat);
         default:
           return null;
       }
