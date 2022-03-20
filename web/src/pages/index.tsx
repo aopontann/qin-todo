@@ -4,21 +4,10 @@ import styles from 'styles/Home.module.css';
 import { Header } from 'component/Header';
 import { Footer } from 'component/Footer';
 import { Body } from 'component/Body';
-import { ChangeEventHandler, useRef, useState } from 'react';
-import moment from 'moment';
+import { ChangeEventHandler, useEffect, useRef, useState } from 'react';
+import { addDays, isSameDay, startOfDay } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 
-interface Todos {
-  id: number;
-  label: string;
-  isDone: boolean;
-}
-
-type Update = {
-  update: boolean;
-  id: number;
-};
-
-// 仮
 type Items = {
   id: string;
   content: string;
@@ -26,8 +15,8 @@ type Items = {
   execution_date: string | null;
 }[];
 
-// apiレスポンス
-const data: { items: Items } = {
+// apiレスポンス 削除予定
+const res: { items: Items } = {
   items: [
     {
       id: 'id001',
@@ -45,138 +34,139 @@ const data: { items: Items } = {
       id: 'id003',
       content: '明日する',
       completed: true,
-      execution_date: moment().startOf('day').add({ days: 1 }).format(), // テスト用 常に明日の日付になる
+      execution_date: formatInTimeZone(addDays(new Date(), 1), 'UTC', 'yyyy-MM-dd HH:mm:ss'),
+      // テスト用 常に明日の日付になる
     },
   ],
 };
 
-/*
-  execution_dateが明日か検証して出し分ける
-  明日なら「明日やる」
-  明日じゃないなら「今日やる」
-  ※ 過去はすべて今日やるタスク、明日以降の未来は扱わない。
-  nullは「今度やる」
-*/
-
-// 明日か判別する、nullはそもそも入れさせない。
-const validationTommorow = (data: string): boolean => {
-  // 現在からみて明日を取得する
-  const tomorrow = moment().startOf('day').add({ days: 1 }).format();
-  // 引数がtomorrowと同じ日付か検証する
-  return moment(data).isSame(tomorrow, 'day');
-};
-
-// UTCをJST日本標準時に変換する
-const formatToJST = (UTCDate: string): string => moment.utc(UTCDate).local().format();
-
 type TodosList = {
   label: string;
   color: string;
+  bg: string;
   todos: Items;
 }[];
 
-// フロントで扱いやすいように加工する
-const todosList: TodosList = [
+const initTodosList: TodosList = [
   {
-    label: '今日やる',
-    color: '#F43F5E',
-    todos: [
-      ...data.items.filter((item) => {
-        const date = item.execution_date;
-        // 明日じゃないなら入れる
-        return date === null ? false : !validationTommorow(formatToJST(date));
-      }),
-    ],
+    label: '今日する',
+    color: 'text-rose',
+    bg: 'bg-rose',
+    todos: [],
   },
   {
-    label: '明日やる',
-    color: '#FB923C',
-    todos: [
-      ...data.items.filter((item) => {
-        const date = item.execution_date;
-        // 明日なら入れる
-        return date === null ? false : validationTommorow(formatToJST(date));
-      }),
-    ],
+    label: '明日する',
+    color: 'text-orange',
+    bg: 'bg-orange',
+    todos: [],
   },
   {
-    label: '今度やる',
-    color: '#FBBF24',
-    todos: [
-      ...data.items.filter((item) => {
-        // nullなら入れる
-        return item.execution_date === null;
-      }),
-    ],
+    label: '今度する',
+    color: 'text-yellow',
+    bg: 'bg-yellow',
+    todos: [],
   },
 ];
 
 const Home: NextPage = () => {
+  // input関連
   const ref = useRef<HTMLInputElement>(null);
   const [text, setText] = useState('');
-  const [todos, setTodos] = useState<Todos[]>([]);
-  const [updateButton, setUpdateButton] = useState<Update>({ update: false, id: 0 });
+  const input: ChangeEventHandler<HTMLInputElement> = (e) => setText(e.target.value);
+  // APIのレスポンス
+  const [data, setData] = useState<Items>([]);
+  // フロント用に加工した配列
+  const [todosList, setTodosList] = useState(initTodosList);
 
-  const toggle: ChangeEventHandler<HTMLInputElement> = (e) => {
-    setTodos((prevTodos) => {
-      return prevTodos.map((prevTodo) => {
-        if (prevTodo.id === Number(e.target.value)) {
-          return {
-            ...prevTodo,
-            isDone: !prevTodo.isDone,
-          };
-        }
+  /*
+    日付周りのメモ
+    execution_dateが明日か検証して出し分ける
+    明日なら「明日やる」
+    明日じゃないなら「今日やる」
+    ※ 過去はすべて今日やるタスク、明日以降の未来は扱わない。
+    nullは「今度やる」
+    基本的には日本時刻は残さず条件分岐する際にのみ利用する
+  */
 
-        return prevTodo;
-      });
-    });
+  // 日付の形式
+  const Dateformat = 'yyyy-MM-dd HH:mm:ss';
+  // 明日か判別する、nullはそもそも入れさせない。
+  const validationTommorow = (date: string): boolean => {
+    const argDate = new Date(date);
+    // 現在からみて明日を取得する
+    const tomorrow = startOfDay(addDays(new Date(), 1));
+    // 引数がtomorrowと同じ日付か検証する
+    return isSameDay(argDate, tomorrow);
   };
 
-  const input: ChangeEventHandler<HTMLInputElement> = (e) => {
-    setText(e.target.value);
-  };
+  // タスクを追加
+  const addTask = (label: string): boolean => {
+    if (text === '') return false;
 
-  const add = () => {
-    setTodos((prevTodos) => {
-      return [...prevTodos, { id: Math.random(), label: text, isDone: false }];
-    });
+    switch (label) {
+      case todosList[0].label: // 今日する
+        setData((prevData) => [
+          ...prevData,
+          {
+            id: String(Math.random()),
+            content: text,
+            completed: false,
+            execution_date: formatInTimeZone(new Date(), 'UTC', Dateformat),
+          },
+        ]);
+        break;
+      case todosList[1].label: // 明日する
+        setData((prevData) => [
+          ...prevData,
+          {
+            id: String(Math.random()),
+            content: text,
+            completed: false,
+            execution_date: formatInTimeZone(addDays(new Date(), 1), 'UTC', Dateformat),
+          },
+        ]);
+        break;
+      case todosList[2].label: // 今度する
+        setData((prevData) => [
+          ...prevData,
+          { id: String(Math.random()), content: text, completed: false, execution_date: null },
+        ]);
+        break;
+      default:
+        throw new Error('存在しないキーワードです');
+    }
+
     setText('');
+    return false;
   };
 
-  const remove = (index: number): void => {
-    const newTodow = [...todos];
-    newTodow.splice(index, 1);
-    setTodos(newTodow);
-  };
-
-  const edit = (id: number): void => {
-    setTodos((prevTodos) => {
-      return prevTodos.map((prevTodo) => {
-        if (prevTodo.id === id) {
-          ref.current?.focus();
-          setText(prevTodo.label);
-          setUpdateButton({ update: true, id: prevTodo.id });
-        }
-        return { ...prevTodo };
-      });
-    });
-  };
-
-  const update = () => {
-    setTodos((prevTodos) => {
-      return prevTodos.map((prevTodo) => {
-        if (prevTodo.id === updateButton.id) {
-          return {
-            ...prevTodo,
-            label: text,
-          };
-        }
-        return prevTodo;
-      });
-    });
-    setUpdateButton({ update: false, id: 0 });
-    setText('');
-  };
+  // タスクが増減するたびに配列を作成
+  useEffect(() => {
+    setTodosList((prevTodosList) => [
+      {
+        ...prevTodosList[0],
+        todos: data.filter((todo) => {
+          const date = todo.execution_date;
+          return date === null ? false : !validationTommorow(date);
+        }),
+      },
+      {
+        ...prevTodosList[1],
+        todos: data.filter((todo) => {
+          const date = todo.execution_date;
+          return date === null ? false : validationTommorow(date);
+        }),
+      },
+      {
+        ...prevTodosList[2],
+        todos: data.filter((todo) => {
+          const date = todo.execution_date;
+          return date === null;
+        }),
+      },
+    ]);
+    console.log(data);
+  }, [data]);
 
   return (
     <div className={styles.container}>
@@ -189,45 +179,34 @@ const Home: NextPage = () => {
       <Header></Header>
 
       <Body>
-        {/* 出しわけ出来次第削除予定
-        <ul>
-          {todos.map((todo, index) => (
-            <li key={todo.id}>
-              <input type='checkbox' value={todo.id} onChange={toggle} checked={todo.isDone} />
-              <button onClick={() => edit(todo.id)}>{todo.label}</button>
-              <button className='border border-red-500' onClick={() => remove(index)}>
-                削除
-              </button>
-            </li>
+        <div className='grid gap-8'>
+          {todosList.map((todosItem, i) => (
+            <section key={i}>
+              <p className={todosItem.color}>{todosItem.label}</p>
+              <ul>
+                {todosItem.todos.map((todo, i) => (
+                  <li key={i}>
+                    <input type='checkbox' />
+                    <button>{todo.content}</button>
+                    <button>削除</button>
+                  </li>
+                ))}
+              </ul>
+            </section>
           ))}
-          <li className={todos.length ? 'hidden md:block' : ''}>
-            <button onClick={() => ref.current?.focus()}>タスクを追加する</button>
-          </li>
-        </ul> */}
-
-        {todosList.map((todosItem, index) => (
-          <section key={index}>
-            <h2>{todosItem.label}</h2>
-            <ul>
-              {todosItem.todos.map((todo) => (
-                <li key={todo.id}>
-                  <input type='checkbox' />
-                  <button>{todo.content}</button>
-                  <button>削除</button>
-                </li>
-              ))}
-              <li className={todosItem.todos.length ? 'hidden md:block' : ''}>
-                <button onClick={() => ref.current?.focus()}>タスクを追加する</button>
-              </li>
-            </ul>
-          </section>
-        ))}
+        </div>
       </Body>
 
       <Footer>
-        <div>
+        <div className='grid gap-2 py-8'>
           <input className='border border-gray' value={text} onChange={input} ref={ref} type='text' />
-          <button onClick={() => (updateButton.update ? update() : add())}>追加</button>
+          <div className='grid gap-1 grid-flow-col'>
+            {todosList.map((todosItem, index) => (
+              <button className={`${todosItem.bg} text-white`} onClick={() => addTask(todosItem.label)} key={index}>
+                {todosItem.label}
+              </button>
+            ))}
+          </div>
         </div>
       </Footer>
     </div>

@@ -3,7 +3,13 @@ module.exports = {
   darkMode: false,
   content: [],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        rose: '#F43F5E',
+        orange: '#FB923C',
+        yellow: '#FBBF24',
+      },
+    },
   },
   plugins: [],
 };
