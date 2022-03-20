@@ -103,38 +103,26 @@ const Home: NextPage = () => {
   const addTask = (label: string): boolean => {
     if (text === '') return false;
 
-    switch (label) {
-      case todosList[0].label: // 今日する
-        setData((prevData) => [
-          ...prevData,
-          {
-            id: String(Math.random()),
-            content: text,
-            completed: false,
-            execution_date: formatInTimeZone(new Date(), 'UTC', Dateformat),
-          },
-        ]);
-        break;
-      case todosList[1].label: // 明日する
-        setData((prevData) => [
-          ...prevData,
-          {
-            id: String(Math.random()),
-            content: text,
-            completed: false,
-            execution_date: formatInTimeZone(addDays(new Date(), 1), 'UTC', Dateformat),
-          },
-        ]);
-        break;
-      case todosList[2].label: // 今度する
-        setData((prevData) => [
-          ...prevData,
-          { id: String(Math.random()), content: text, completed: false, execution_date: null },
-        ]);
-        break;
-      default:
-        throw new Error('存在しないキーワードです');
-    }
+    const date = (): string | null => {
+      switch (label) {
+        case todosList[0].label:
+          return formatInTimeZone(new Date(), 'UTC', Dateformat);
+        case todosList[1].label:
+          return formatInTimeZone(addDays(new Date(), 1), 'UTC', Dateformat);
+        default:
+          return null;
+      }
+    };
+
+    setData((prevData) => [
+      ...prevData,
+      {
+        id: String(Math.random()),
+        content: text,
+        completed: false,
+        execution_date: date(),
+      },
+    ]);
 
     setText('');
     return false;
@@ -168,46 +156,27 @@ const Home: NextPage = () => {
 
   // タスクを更新する
   const updateTask = (label: string) => {
-    switch (label) {
-      case todosList[0].label: // 今日する
-        setData((prevData) => [
-          ...prevData.filter((item) => item.id !== currentTask.id),
-          ...prevData
-            .filter((item) => item.id === currentTask.id)
-            .map((item) => ({
-              ...item,
-              content: text,
-              execution_date: formatInTimeZone(new Date(), 'UTC', Dateformat),
-            })),
-        ]);
-        break;
-      case todosList[1].label: // 明日する
-        setData((prevData) => [
-          ...prevData.filter((item) => item.id !== currentTask.id),
-          ...prevData
-            .filter((item) => item.id === currentTask.id)
-            .map((item) => ({
-              ...item,
-              content: text,
-              execution_date: formatInTimeZone(addDays(new Date(), 1), 'UTC', Dateformat),
-            })),
-        ]);
-        break;
-      case todosList[2].label: // 今度する
-        setData((prevData) => [
-          ...prevData.filter((item) => item.id !== currentTask.id),
-          ...prevData
-            .filter((item) => item.id === currentTask.id)
-            .map((item) => ({
-              ...item,
-              content: text,
-              execution_date: null,
-            })),
-        ]);
-        break;
-      default:
-        throw new Error('存在しないキーワードです');
-    }
+    const date = (): string | null => {
+      switch (label) {
+        case todosList[0].label:
+          return formatInTimeZone(new Date(), 'UTC', Dateformat);
+        case todosList[1].label:
+          return formatInTimeZone(addDays(new Date(), 1), 'UTC', Dateformat);
+        default:
+          return null;
+      }
+    };
+
+    setData((prevData) => [
+      ...prevData.filter((item) => item.id !== currentTask.id),
+      ...prevData
+        .filter((item) => item.id === currentTask.id)
+        .map((item) => ({
+          ...item,
+          content: text,
+          execution_date: date(),
+        })),
+    ]);
 
     setCurrentTask({ active: false, id: '' });
     setText('');
@@ -216,27 +185,20 @@ const Home: NextPage = () => {
   // タスクが増減するたびに配列を作成
   useEffect(() => {
     setTodosList((prevTodosList) => [
-      {
-        ...prevTodosList[0],
+      ...prevTodosList.map((prevTodosItem) => ({
+        ...prevTodosItem,
         todos: data.filter((todo) => {
           const date = todo.execution_date;
-          return date === null ? false : !validationTommorow(date);
+          switch (prevTodosItem.label) {
+            case prevTodosList[0].label:
+              return date === null ? false : !validationTommorow(date);
+            case prevTodosList[1].label:
+              return date === null ? false : validationTommorow(date);
+            default:
+              return date === null;
+          }
         }),
-      },
-      {
-        ...prevTodosList[1],
-        todos: data.filter((todo) => {
-          const date = todo.execution_date;
-          return date === null ? false : validationTommorow(date);
-        }),
-      },
-      {
-        ...prevTodosList[2],
-        todos: data.filter((todo) => {
-          const date = todo.execution_date;
-          return date === null;
-        }),
-      },
+      })),
     ]);
   }, [data]);
 
