@@ -12,7 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/oklog/ulid/v2"
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 	"github.com/aopontann/qin-todo/common"
 )
 
@@ -27,32 +26,15 @@ type GoogleUserInfo struct {
 	Locale        string `json:"locale"`
 }
 
-var conf *oauth2.Config
-
-// Google認証に必要な設定
-// main.goで.envの読み込みをしてこの関数を実行しているが、関数外でconfの設定をしたらどうなるか
-func GoogleAuthInit() {
-	conf = &oauth2.Config{
-		ClientID:     os.Getenv("CLIENT_ID"),
-		ClientSecret: os.Getenv("SECRET_KEY"),
-		RedirectURL:  "http://localhost:18080/callback",
-		Scopes: []string{
-			"https://www.googleapis.com/auth/userinfo.email",
-			"https://www.googleapis.com/auth/userinfo.profile",
-		},
-		Endpoint: google.Endpoint,
-	}
-}
-
 func GoogleAuthRedirect(c *gin.Context) {
-	url := conf.AuthCodeURL("state", oauth2.AccessTypeOffline)
+	url := common.Conf.AuthCodeURL("state", oauth2.AccessTypeOffline)
 	c.Redirect(http.StatusMovedPermanently, url)
 }
 
 func GoogleAuthGetToken(c *gin.Context) {
 	code := c.Query("code")
 	// 認可コードからトークンを取得する
-	tok, err := conf.Exchange(oauth2.NoContext, code)
+	tok, err := common.Conf.Exchange(oauth2.NoContext, code)
 	if err != nil {
 		log.Fatal(err)
 	}

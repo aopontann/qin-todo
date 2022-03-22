@@ -5,7 +5,6 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/aopontann/qin-todo/common"
-	"github.com/aopontann/qin-todo/handler"
 )
 
 func main() {
@@ -16,7 +15,7 @@ func main() {
 	}
 
 	// Google認証に必要な設定
-	handler.GoogleAuthInit()
+	common.GoogleAuthInit()
 
 	// DBの初期化
 	db := common.Init()
