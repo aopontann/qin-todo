@@ -48,6 +48,16 @@ services:
     ports:
       - 13306:3306
 
+  redis:
+    image: "redis:6.2.6"
+    container_name: redis
+    ports:
+      - "16379:6379"
+    volumes:
+      - "./tools/docker/db/redis.conf:/usr/local/etc/redis/redis.conf"
+      # - "./tools/docker/db/redis_data:/data"
+    command: "redis-server /usr/local/etc/redis/redis.conf"
+
   prism:
     image: stoplight/prism:4
     command: 'mock -h 0.0.0.0 /tmp/qin-todo.yaml'
