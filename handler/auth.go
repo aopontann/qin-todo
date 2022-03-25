@@ -9,10 +9,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/oklog/ulid/v2"
-	"golang.org/x/oauth2"
 	"github.com/aopontann/qin-todo/common"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/oklog/ulid/v2"
+	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/oauth2"
 )
 
 type GoogleUserInfo struct {
@@ -74,5 +76,112 @@ func GoogleAuthGetToken(c *gin.Context) {
 		"ulid": id,
 		"tok":  tok,
 		"body": userInfo,
+	})
+}
+
+// リクエストボディからメールアドレスとパスワードを取得し、セッションIDを発行する
+func SessionAuthLogin(c *gin.Context) {
+	var (
+		id   string
+		pass string
+	)
+	var reqb RequestBody
+	// リクエストボディを構造体にシリアライズする(Ginの機能)
+	err := c.ShouldBindJSON(&reqb)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	db := common.GetDB()
+	// emailが一致するユーザーのidとパスワードを取得する
+	err = db.QueryRow("SELECT id, password FROM users WHERE email = ?", reqb.Email).Scan(&id, &pass)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Wrong email address or password"})
+		return
+	}
+
+	// パスワードを検証する
+	err = bcrypt.CompareHashAndPassword([]byte(pass), []byte(reqb.Password))
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Wrong email address or password"})
+		return
+	}
+
+	// uuidを生成する(セッションIDの生成)
+	sid := uuid.NewString()
+
+	// Cookieの"session"というkeyにuuidを保存する(有効期限はとりあえず1時間)
+	c.SetCookie("session", sid, 3600, "/", "localhost", false, true)
+
+	// redisにuuidをキーとしてユーザーidを値として保存する(これも有効期限を1時間とする)
+	rdb := common.GetRDB()
+	err = rdb.Set(c, sid, id, 1*time.Hour).Err()
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"id":        id,
+		"sessionId": sid,
+		"reqb":      reqb,
+	})
+}
+
+func SessionAuthLogout(c *gin.Context) {
+	// cookieからセッションIDを取得
+	sid, err := c.Cookie("session")
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Already logged out. Or your session ID is invalid."})
+		return
+	}
+
+	// maxAgeに0かマイナス値を指定することで対象のcookieを削除することができる
+	c.SetCookie("session", "", -1, "/", "localhost", false, true)
+
+	// redisに保存されているセッションIDを削除する
+	rdb := common.GetRDB()
+	if err := rdb.Del(c, sid).Err(); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"message": "Logged out.",
+	})
+}
+
+// ユーザー登録機能
+func UserRegister(c *gin.Context) {
+	var reqb RequestBody
+	// リクエストボディを構造体にシリアライズする(Ginの機能)
+	if err := c.ShouldBindJSON(&reqb); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	// ULIDの作成
+	t := time.Now()
+	entropy := ulid.Monotonic(rand.New(rand.NewSource(t.UnixNano())), 0)
+	id := ulid.MustNew(ulid.Timestamp(t), entropy)
+
+	// パスワードをハッシュ化
+	hashed, _ := bcrypt.GenerateFromPassword([]byte(reqb.Password), 10)
+
+	// DB接続プールを取得する
+	db := common.GetDB()
+	// idと"名前"、メールアドレス、ハッシュ化したパスワードをDBに保存する(ユーザー名のデフォルトをとりあえず"名前"しておく)
+	// 名前の決め方や何かいい案があれば教えてほしい
+	_, err := db.Exec("INSERT INTO users (id, name, email, password) VALUES (?,?,?,?)", id.String(), "名前", reqb.Email, string(hashed))
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(201, gin.H{
+		"id":     id,
+		"hashed": string(hashed),
+		"reqb":   reqb,
 	})
 }
