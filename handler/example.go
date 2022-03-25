@@ -3,6 +3,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"math/rand"
 	"time"
@@ -116,4 +117,23 @@ func PostUserDemo(c *gin.Context) {
 	c.JSON(201, gin.H{
 		"reqb": reqb,
 	})
+}
+
+// Cookieをいじってみる
+func CookieDemo(c *gin.Context) {
+	var json RequestBody
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	cookie, err := c.Cookie("gin_cookie")
+
+	if err != nil {
+		cookie = "NotSet"
+		c.SetCookie("gin_cookie", "test!", 3600, "/", "localhost", false, true)
+	}
+
+	fmt.Printf("Cookie  value: %s \n", cookie)
+	c.JSON(200, json)
 }
