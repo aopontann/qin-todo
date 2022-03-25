@@ -13,9 +13,6 @@ func InitRouter() *gin.Engine {
 
 	r.GET("/ping", handler.Pon)
 
-	// todoリスト取得機能(デモ版)
-	r.GET("/todo_list", handler.GetTodoList)
-
 	auth := r.Group("/auth")
 	{
 		// google認証画面にリダイレクト
@@ -23,6 +20,15 @@ func InitRouter() *gin.Engine {
 
 		// トークン取得エンドポイント
 		auth.GET("/token", handler.GoogleAuthGetToken)
+	}
+
+	// 本番環境では使わない検証用パス
+	demo := r.Group("/demo")
+	{
+		// todoリスト取得機能(デモ版)
+		demo.GET("/todo_list", handler.GetTodoList)
+		demo.GET("/user_hardCode", handler.GetUserHardCode)
+		demo.POST("/post_user_demo", handler.PostUserDemo)
 	}
 
 	return r
