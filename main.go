@@ -22,6 +22,8 @@ func main() {
 	// プールの切断
 	defer db.Close()
 
+	common.RedisInit()
+
 	r := InitRouter()
 
 	r.Run()
