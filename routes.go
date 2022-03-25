@@ -20,6 +20,18 @@ func InitRouter() *gin.Engine {
 
 		// トークン取得エンドポイント
 		auth.GET("/token", handler.GoogleAuthGetToken)
+
+		auth.POST("/register", handler.UserRegister)
+
+		auth.POST("/login", handler.SessionAuthLogin)
+
+		auth.POST("/logout", handler.SessionAuthLogout)
+
+	}
+
+	user := r.Group("/user")
+	{
+		user.GET("/", handler.GetUser)
 	}
 
 	// 本番環境では使わない検証用パス
@@ -29,6 +41,7 @@ func InitRouter() *gin.Engine {
 		demo.GET("/todo_list", handler.GetTodoList)
 		demo.GET("/user_hardCode", handler.GetUserHardCode)
 		demo.POST("/post_user_demo", handler.PostUserDemo)
+		demo.POST("/cookie", handler.CookieDemo)
 	}
 
 	return r
