@@ -53,10 +53,11 @@ services:
     container_name: redis
     ports:
       - "16379:6379"
-    volumes:
-      - "./tools/docker/db/redis.conf:/usr/local/etc/redis/redis.conf"
+    # いまのところ使う必要なさそうなため、コメントアウトしておく
+    # volumes:
+      # - "./tools/docker/db/redis.conf:/usr/local/etc/redis/redis.conf"
       # - "./tools/docker/db/redis_data:/data"
-    command: "redis-server /usr/local/etc/redis/redis.conf"
+    # command: "redis-server /usr/local/etc/redis/redis.conf"
 
   prism:
     image: stoplight/prism:4
