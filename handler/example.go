@@ -50,7 +50,8 @@ func GetTodoList(c *gin.Context) {
 	// SQLを実行（全てのToDoからidと内容とやる日を出力する。）
 	rows, err := db.Query("SELECT id, content, execution_date FROM todo_list")
 	if err != nil {
-		log.Fatal(err)
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
 	}
 	// これやる意味はわかってない
 	// 調べた感じ「開いた結果セットがある限り、基礎となる接続はビジー状態であり、他のクエリに使用することはできない。つまり、コネクションプールで利用できない」と説明があり、ビジー状態を解除するためにClose()する必要があるのではないかと思う。
@@ -60,7 +61,8 @@ func GetTodoList(c *gin.Context) {
 		// カラムを変数に読み込む
 		err := rows.Scan(&id, &content, &execution_date)
 		if err != nil {
-			log.Fatal(err)
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
 		}
 		// 確認でログ出力する
 		log.Println(id, content, execution_date)
@@ -70,7 +72,8 @@ func GetTodoList(c *gin.Context) {
 	// 反復中に発生したエラーを返す。エラーが発生していない場合nilを返す
 	err = rows.Err()
 	if err != nil {
-		log.Fatal(err)
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
 	}
 	// ステータスコード200でクライアントにtodo_listをレスポンスとして返す
 	// gin.Hは map[string]interface{} のショートカット
@@ -97,7 +100,8 @@ func PostUserDemo(c *gin.Context) {
 	// byte型スライスからGo構造体にデコード
 	err := json.Unmarshal(buf[:n], &reqb)
 	if err != nil {
-		log.Fatal(err)
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
 	}
 	// ULIDの作成
 	t := time.Now()
