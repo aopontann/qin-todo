@@ -7,11 +7,11 @@ servers:
 paths:
   /user:
     get:
-      summary: ''
+      summary: ユーザー情報取得
       operationId: get-user
       responses:
         '200':
-          description: OK
+          description: ユーザー情報取得成功
           headers: {}
           content:
             application/json:
@@ -45,7 +45,7 @@ paths:
                     id: 01FYXJAV5S9QARVY8AV66A5FAB
                     name: 名前
         '401':
-          description: Unauthorized
+          description: セッションIDが無効である場合
           content:
             application/json:
               schema:
@@ -128,6 +128,26 @@ paths:
               schema:
                 type: string
               description: session=c91ebd34-b6ac-408d-a66d-fe1e99fa1f0a; Path=/; Domain=localhost; Max-Age=3600; HttpOnly
+        '400':
+          description: メールアドレスまたはパスワードが違うときのエラー
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  error:
+                    type: string
+                    minLength: 1
+                required:
+                  - error
+                x-examples:
+                  example-1:
+                    error: Wrong email address or password
+              examples:
+                example-1:
+                  value:
+                    error: Wrong email address or password
       requestBody:
         content:
           application/json:
@@ -203,7 +223,27 @@ paths:
               examples:
                 example-1:
                   value:
-                    message: string
+                    message: Logged out.
+        '401':
+          description: ログアウトしようとしたが、既にログアウトしていた場合、もしくはセッションIDが(有効期限切れなどで)無効になっていた場合
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  error:
+                    type: string
+                    minLength: 1
+                required:
+                  - error
+                x-examples:
+                  example-1:
+                    error: Already logged out. Or your session ID is invalid.
+              examples:
+                example-1:
+                  value:
+                    error: Already logged out. Or your session ID is invalid.
       operationId: post-auth-logout
       parameters:
         - schema:
