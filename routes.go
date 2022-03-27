@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/aopontann/qin-todo/handler"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,6 +11,11 @@ func InitRouter() *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
+
+	config := cors.DefaultConfig()
+	// すべてのオリジンを許可する(本番環境にデプロイするまでにちゃんと設定する)
+	config.AllowAllOrigins = true
+	r.Use(cors.New(config))
 
 	r.GET("/ping", handler.Pon)
 
