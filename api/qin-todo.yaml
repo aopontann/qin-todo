@@ -213,3 +213,101 @@ paths:
           description: セッションID
           required: true
       description: ログアウト機能
+  /auth/register:
+    post:
+      summary: ユーザー登録
+      tags:
+        - auth
+      responses:
+        '200':
+          description: 登録完了（response bodyにハッシュ化したパスワードなど色々含めているが、確認用なため本番ではresponse bodyは使用しないつもりです）
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  hashed:
+                    type: string
+                    minLength: 1
+                  id:
+                    type: string
+                    minLength: 1
+                  reqb:
+                    type: object
+                    properties:
+                      email:
+                        type: string
+                        minLength: 1
+                      password:
+                        type: string
+                        minLength: 1
+                    required:
+                      - email
+                      - password
+                required:
+                  - hashed
+                  - id
+                  - reqb
+                x-examples:
+                  example-1:
+                    hashed: $2a$10$koIpvmPPtDt/0s24c8660.mnNN7.ng/YI5/DrzTM7is6Is4EQvGOS
+                    id: 01FZ4M93QS931QJT8SZCYADKCA
+                    reqb:
+                      email: test2@example.com
+                      password: test123
+              examples:
+                example-1:
+                  value:
+                    hashed: $2a$10$koIpvmPPtDt/0s24c8660.mnNN7.ng/YI5/DrzTM7is6Is4EQvGOS
+                    id: 01FZ4M93QS931QJT8SZCYADKCA
+                    reqb:
+                      email: test2@example.com
+                      password: test123
+        '400':
+          description: 既に使われているメールアドレスで登録しようとしたときのエラー
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  error:
+                    type: string
+                    minLength: 1
+                required:
+                  - error
+                x-examples:
+                  example-1:
+                    error: 'Error 1062: Duplicate entry ''test2@example.com'' for key ''email'''
+              examples:
+                example-1:
+                  value:
+                    error: 'Error 1062: Duplicate entry ''test2@example.com'' for key ''email'''
+      operationId: post-auth-register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                email:
+                  type: string
+                  minLength: 1
+                password:
+                  type: string
+                  minLength: 1
+              required:
+                - email
+                - password
+              x-examples:
+                example-1:
+                  email: test@example.com
+                  password: test123
+            examples:
+              example-1:
+                value:
+                  email: test@example.com
+                  password: test123
+        description: ''
