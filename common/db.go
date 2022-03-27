@@ -3,10 +3,13 @@ package common
 import (
 	"database/sql"
 	"log"
+
+	"github.com/go-redis/redis/v8"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 var DB *sql.DB
+var RDB *redis.Client
 
 // Opening a database and save the reference to `Database` struct.
 func Init() *sql.DB {
@@ -25,4 +28,18 @@ func Init() *sql.DB {
 
 func GetDB() *sql.DB {
 	return DB
+}
+
+func RedisInit() *redis.Client {
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "redis:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+	RDB = rdb
+	return RDB
+}
+
+func GetRDB() *redis.Client {
+	return RDB
 }
