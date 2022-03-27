@@ -37,10 +37,21 @@ func GetUser(c *gin.Context) {
 		return
 	}
 
+	// この記述よくなさそうだから、他にいい方法があるか調べてみる
+	if avatar_url != nil {
+		c.JSON(200, gin.H{
+			"id":    id,
+			"name":  name,
+			"email": email,
+			"avatar_url": avatar_url.String,
+		})
+		return
+	}
 	c.JSON(200, gin.H{
 		"id":    id,
 		"name":  name,
 		"email": email,
-		"avatar_url": avatar_url,
+		"avatar_url": nil,
 	})
+
 }
