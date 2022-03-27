@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: qin-todo
-  version: '1.0'
+  version: '0.1'
 servers:
   - url: 'http://localhost:18080'
 paths:
@@ -38,12 +38,18 @@ paths:
                     type: string
                     minLength: 1
               examples:
-                example-1:
+                太郎さんの情報:
+                  value:
+                    avatar_url: 'https://lh3.googleusercontent.com/a-/AOh14Gg7m3sGmgDctni57nyWg6ATJLrSJNeT4mKIPtb_lxo=s96-c'
+                    email: test1@example.com
+                    id: 01FYXJAV5S9QARVY8AV66A5FAB
+                    name: 太郎
+                二郎さんの情報:
                   value:
                     avatar_url: null
-                    email: test@example.com
-                    id: 01FYXJAV5S9QARVY8AV66A5FAB
-                    name: 名前
+                    email: test2@example.com
+                    id: 01FZ4NY6195YHN33X736978NTV
+                    name: 二郎
         '401':
           description: セッションIDが無効である場合
           content:
@@ -169,10 +175,18 @@ paths:
                 - email
                 - password
             examples:
-              example-1:
+              太郎さんでログイン:
                 value:
-                  email: test@example.com
+                  email: test1@example.com
                   password: test123
+              二郎さんでログイン:
+                value:
+                  email: test2@example.com
+                  password: test456
+              alexさんでログイン:
+                value:
+                  email: test3@example.com
+                  password: test789
           application/xml:
             schema:
               description: ''
@@ -195,7 +209,7 @@ paths:
                       "email": "test@example.com",
                       "password": "test123"
                   }
-        description: ''
+        description: メールアドレスとパスワードをリクエストボディに含める
       tags:
         - auth
   /auth/logout:
