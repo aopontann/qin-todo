@@ -1,243 +1,215 @@
-openapi: "3.0.0"
+openapi: 3.0.0
 info:
-  version: 0.0.1
   title: qin-todo
-  description: demo
+  version: '1.0'
 servers:
-  # - url: https://example.com/api/v0
-  #   description: プロダクション API
-  - url: http://{host}:{port}/api/v0
-    description: 開発用
-    variables:
-      host:
-        default: localhost
-      port:
-        default: '18081'
+  - url: 'http://localhost:18080'
 paths:
-  /todos:
+  /user:
     get:
-      summary: 全てのTodoを取得する
+      summary: ''
+      operationId: get-user
       responses:
         '200':
-          description: Todoの配列を返す
+          description: OK
+          headers: {}
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Todos'
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    avatar_url: null
+                    email: test@example.com
+                    id: 01FYXJAV5S9QARVY8AV66A5FAB
+                    name: 名前
+                properties:
+                  avatar_url:
+                    type: string
+                    nullable: true
+                  email:
+                    type: string
+                    minLength: 1
+                  id:
+                    type: string
+                    minLength: 1
+                  name:
+                    type: string
+                    minLength: 1
+              examples:
+                example-1:
+                  value:
+                    avatar_url: null
+                    email: test@example.com
+                    id: 01FYXJAV5S9QARVY8AV66A5FAB
+                    name: 名前
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  error:
+                    type: string
+                    minLength: 1
+                required:
+                  - error
+                x-examples:
+                  example-1:
+                    error: session invailed
+              examples:
+                example-1:
+                  value:
+                    error: string
+      parameters:
+        - schema:
+            type: string
+          in: cookie
+          name: session
+          description: セッションID
+          required: true
       tags:
-        - todos
-
+        - user
+  /auth/login:
     post:
-      summary: Todoを作成する
-      operationId: addPet
+      summary: login
+      operationId: post-auth-login
+      responses:
+        '200':
+          description: ログイン成功(CookieにセッションIDが付与される)
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  id:
+                    type: string
+                    minLength: 1
+                  reqb:
+                    type: object
+                    properties:
+                      email:
+                        type: string
+                        minLength: 1
+                      password:
+                        type: string
+                        minLength: 1
+                    required:
+                      - email
+                      - password
+                  sessionId:
+                    type: string
+                    minLength: 1
+                required:
+                  - id
+                  - reqb
+                  - sessionId
+                x-examples:
+                  example-1:
+                    id: 01FYXJAV5S9QARVY8AV66A5FAB
+                    reqb:
+                      email: test@example.com
+                      password: test123
+                    sessionId: c91ebd34-b6ac-408d-a66d-fe1e99fa1f0a
+              examples:
+                example-1:
+                  value:
+                    id: 01FYXJAV5S9QARVY8AV66A5FAB
+                    reqb:
+                      email: test@example.com
+                      password: test123
+                    sessionId: c91ebd34-b6ac-408d-a66d-fe1e99fa1f0a
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: session=c91ebd34-b6ac-408d-a66d-fe1e99fa1f0a; Path=/; Domain=localhost; Max-Age=3600; HttpOnly
       requestBody:
-        description: Todoを作成する
-        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewTodo'
-      responses:
-        '201':
-          description: Todoの作成に成功しました
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Todos'
-        default:
-          description: エラーが発生しました
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-      tags:
-        - todos
-
-  /todos/{todo_id}:
-    put:
-      summary: Todoを更新する
-      parameters:
-        - name: todo_id
-          in: path
-          description: Todoのid
-          required: true
-          schema:
-            type: string
-      requestBody:
-        description: Todoを更新する
-        required: true
-        content:
-          application/json:
+              description: ''
+              type: object
+              x-examples:
+                example-1:
+                  email: test@example.com
+                  password: test123
+              properties:
+                email:
+                  type: string
+                  minLength: 1
+                password:
+                  type: string
+                  minLength: 1
+              required:
+                - email
+                - password
+            examples:
+              example-1:
+                value:
+                  email: test@example.com
+                  password: test123
+          application/xml:
             schema:
-              $ref: '#/components/schemas/NewTodo'
-      responses:
-        '200':
-          description: Todoを更新しました
+              description: ''
+              type: object
+              x-examples:
+                example-1:
+                  email: test@example.com
+                  password: test123
+              properties:
+                email:
+                  type: string
+                  minLength: 1
+                password:
+                  type: string
+                  minLength: 1
+            examples:
+              example-1:
+                value: |-
+                  {
+                      "email": "test@example.com",
+                      "password": "test123"
+                  }
+        description: ''
       tags:
-        - todos
-
-    delete:
-      summary: Todoを削除する
-      parameters:
-        - name: todo_id
-          in: path
-          description: Todoのid
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Todoを削除しました
+        - auth
+  /auth/logout:
+    post:
+      summary: logout
       tags:
-        - todos
-
-  /users/{user_id}:
-    get:
-      summary: ユーザー情報を取得する
-      parameters:
-        - name: user_id
-          in: path
-          description: ユーザーid
-          required: true
-          schema:
-            type: string
+        - auth
       responses:
         '200':
-          description: ユーザー情報
+          description: ログアウト完了(cookieに保存されていたセッションIDを削除)
           content:
             application/json:
               schema:
-                  $ref: '#/components/schemas/User'
-      tags:
-      - users
-
-    put:
-      summary: ユーザー情報を更新する（アイコンURLと名前）
+                description: ''
+                type: object
+                properties:
+                  message:
+                    type: string
+                    minLength: 1
+                required:
+                  - message
+                x-examples:
+                  example-1:
+                    message: Logged out.
+              examples:
+                example-1:
+                  value:
+                    message: string
+      operationId: post-auth-logout
       parameters:
-        - name: user_id
-          in: path
-          description: ユーザーid
-          required: true
-          schema:
+        - schema:
             type: string
-      requestBody:
-        description: ユーザー情報を更新しました
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateUser'
-      responses:
-        '200':
-          description: ユーザー情報
-          content:
-            application/json:
-              schema:
-                  $ref: '#/components/schemas/User'
-      tags:
-      - users
-
-tags:
-- name: users
-  description: ユーザーに関するAPI群です
-- name: todos
-  description: Todoに関するAPI群です
-
-components:
-  schemas:
-    NewTodo:
-      required:
-        - content
-        - execution_date
-      properties:
-        content:
-          type: string
-          description: Todoの内容
-        execution_date:
-          type: string
-          example: 'today'
-          format: date-time
-          description: Todoをやる予定の日付
-
-    Todos:
-      description: Todo
-      properties:
-        todo_id:
-          type: string
-          description: todoのid
-        content:
-          type: string
-          description: Todoの内容
-          example: 洗濯物を干す
-          maxLength: 255
-        completed:
-          type: boolean
-          description: Todoが完了しているかどうか（trueなら完了している）
-          example: false
-        execution_date:
-          type: string
-          example: today
-          enum:
-            - today
-            - tomorrow
-            - later
-          description: Todoをやる予定の日付
-        created_at:
-          type: string
-          example: '2020-01-30T23:59:59+09:00'
-          format: date-time
-          description: Todoが作成された日付
-
-    User:
-      description: ユーザー
-      properties:
-        user_id:
-          type: string
-          description: ユーザーid
-        name:
-          type: string
-          description: ユーザー名
-          maxLength: 255
-          example: RINKA
-        email:
-          type: string
-          format: email
-          description: メールアドレス
-          maxLength: 255
-          example: test@example.com
-        iconURL:
-          type: string
-          description: アイコンのURL
-          maxLength: 255
-
-    UpdateUser:
-      required:
-        - name
-        - iconURL
-      properties:
-        name:
-          type: string
-          description: ユーザー名
-          maxLength: 255
-          example: RINKA
-        iconURL:
-          type: string
-          description: アイコンのURL
-          maxLength: 255
-
-    Error:
-      required:
-        - code
-        - message
-      properties:
-        code:
-          type: integer
-          format: int32
-          description: Error code
-        message:
-          type: string
-          description: Error message
+          in: cookie
+          name: session
+          description: セッションID
+          required: true
+      description: ログアウト機能
