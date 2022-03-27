@@ -133,7 +133,7 @@ func SessionAuthLogout(c *gin.Context) {
 	// cookieからセッションIDを取得
 	sid, err := c.Cookie("session")
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Already logged out. Or your session ID is invalid."})
+		c.JSON(401, gin.H{"error": "Already logged out. Or your session ID is invalid."})
 		return
 	}
 
@@ -143,7 +143,7 @@ func SessionAuthLogout(c *gin.Context) {
 	// redisに保存されているセッションIDを削除する
 	rdb := common.GetRDB()
 	if err := rdb.Del(c, sid).Err(); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(401, gin.H{"error": err.Error()})
 		return
 	}
 
