@@ -14,24 +14,13 @@ func GetUser(c *gin.Context) {
 		email      string
 		avatar_url *sql.NullString
 	)
-	// cookieからセッションIDを取得する
-	sid, err := c.Cookie("session")
-	if err != nil {
-		c.JSON(401, gin.H{"error": "session invailed"})
-		return
-	}
-
-	// redisに保存されているユーザーIDを取得する
-	rdb := common.GetRDB()
-	usrid, err := rdb.Get(c, sid).Result()
-	if err != nil {
-		c.JSON(401, gin.H{"error": "session invailed!"})
-		return
-	}
+	
+	// middlewareで認証をして成功すると、ここでユーザーIDを取得できる
+	userId := c.MustGet("userId").(string)
 
 	// MySQLに保存されているユーザー情報を取得する
 	db := common.GetDB()
-	err = db.QueryRow("SELECT id, name, email, avatar_url FROM users WHERE id = ?", usrid).Scan(&id, &name, &email, &avatar_url)
+	err := db.QueryRow("SELECT id, name, email, avatar_url FROM users WHERE id = ?", userId).Scan(&id, &name, &email, &avatar_url)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
