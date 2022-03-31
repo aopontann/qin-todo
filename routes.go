@@ -37,6 +37,7 @@ func InitRouter() *gin.Engine {
 
 	user := r.Group("/user")
 	{
+		user.Use(MWGetUserID())
 		user.GET("/", handler.GetUser)
 	}
 
