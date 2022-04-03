@@ -1,28 +1,25 @@
 import React from 'react';
 import { useTodoContext } from 'context/TodoContext';
+import { Todo } from 'component/Todo';
 
 export const TodosList = () => {
-  const { todosList, ref, removeTask, completedTask, currentTask, editTask } = useTodoContext();
+  const { todosList, ref } = useTodoContext();
 
   return (
     <div className='grid gap-8'>
       {todosList.map((todosItem, i) => (
-        <section key={i}>
-          <p className={todosItem.color}>{todosItem.label}</p>
+        <section className={`${todosItem.color} grid gap-2`} key={i}>
+          <p className={`text-h2 font-bold text-current`}>{todosItem.label}</p>
           <ul>
             {todosItem.todos.map((todo, i) => (
-              <li className={currentTask.id === todo.id ? 'bg-[#FBBF24]/10' : ''} key={i}>
-                <input
-                  onChange={() => completedTask(todo.id)}
-                  checked={todo.completed}
-                  type='checkbox'
-                />
-                <button onClick={() => editTask(todo.id, todo.content)}>{todo.content}</button>
-                <button onClick={() => removeTask(todo.id)}>削除</button>
+              <li key={i}>
+                <Todo todo={todo} />
               </li>
             ))}
             <li className={todosItem.todos.length ? 'hidden md:block' : ''}>
-              <button onClick={() => ref.current?.focus()}>タスクを追加する</button>
+              <button className='text-gray' onClick={() => ref.current?.focus()}>
+                タスクを追加する
+              </button>
             </li>
           </ul>
         </section>
