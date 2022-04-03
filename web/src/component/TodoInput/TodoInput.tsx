@@ -15,7 +15,7 @@ export const TodoInput = () => {
   return (
     <div className='grid gap-2.5'>
       <input
-        className='rounded-2xl bg-surface py-3 px-4 text-sm'
+        className='focus:shadow-outline focus: appearance-none rounded-2xl bg-surface py-3 px-4 text-sm caret-rose focus:border focus:border-rose focus:outline-none'
         value={text}
         onChange={input}
         onFocus={() => setCurrent(true)}
@@ -24,6 +24,7 @@ export const TodoInput = () => {
         placeholder='input placeholder'
         type='text'
       />
+
       <div className='grid grid-flow-col gap-1'>
         {current &&
           todosList.map((todosItem, index) => (
