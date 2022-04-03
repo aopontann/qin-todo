@@ -16,7 +16,7 @@ export const Todo: React.VFC<Props> = ({ todo }) => {
   return (
     <div
       className={`${
-        currentTask === todo.id ? 'bg-[#FBBF24]/10' : 'bg-transparent'
+        currentTask === todo.id ? 'bg-yellow/10' : 'bg-transparent'
       } -mx-2 grid grid-cols-[max-content_1fr_max-content] items-center gap-3 px-2 transition-colors`}
     >
       <div className='h-6 w-6 rounded-full border-2 border-gray p-[2px]'>
