@@ -1,14 +1,6 @@
 import { addDays, isSameDay, startOfDay, subMinutes } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
-import React, {
-  ChangeEventHandler,
-  createContext,
-  ReactNode,
-  useContext,
-  useRef,
-  useState,
-  VFC,
-} from 'react';
+import React, { ChangeEventHandler, createContext, ReactNode, useContext, useRef, useState, VFC } from 'react';
 
 type InitialState = {
   data: Items;
@@ -25,16 +17,8 @@ type InitialState = {
   addTask: (label: string) => boolean;
   removeTask: (id: string) => void;
   completedTask: (id: string) => void;
-  currentTask: {
-    active: boolean;
-    id: string;
-  };
-  setCurrentTask: React.Dispatch<
-    React.SetStateAction<{
-      active: boolean;
-      id: string;
-    }>
-  >;
+  currentTask: string;
+  setCurrentTask: React.Dispatch<React.SetStateAction<string>>;
   editTask: (id: string, content: string) => void;
   updateTask: (label: string) => void;
 };
@@ -53,7 +37,6 @@ type Items = {
 type TodosList = {
   label: string;
   color: string;
-  bg: string;
   todos: Items;
 }[];
 
@@ -61,19 +44,16 @@ const initTodosList: TodosList = [
   {
     label: '今日する',
     color: 'text-rose',
-    bg: 'bg-rose',
     todos: [],
   },
   {
     label: '明日する',
     color: 'text-orange',
-    bg: 'bg-orange',
     todos: [],
   },
   {
     label: '今度する',
     color: 'text-yellow',
-    bg: 'bg-yellow',
     todos: [],
   },
 ];
@@ -118,9 +98,13 @@ export const TodoContextProvider: VFC<Props> = ({ children }) => {
 
   // 日付の形式
   const dateFormat = 'yyyy-MM-dd HH:mm:ss';
-  // 明日か判別する、nullはそもそも入れさせない。
+  // 明日ならtrue、nullはそもそも入れさせない。
   const validationTommorow = (date: string): boolean => {
-    const argDate = new Date(date);
+    /*
+      iosだと年月日の-（ハイフン）が悪さをしている模様
+      参考記事:https://qiita.com/pearmaster8293/items/b5b0df28147eb049f1ea
+    */
+    const argDate = new Date(date.replace(/-/g, '/'));
     const formatArgDate = subMinutes(argDate, argDate.getTimezoneOffset());
     // 現在からみて明日を取得する
     const tomorrow = startOfDay(addDays(new Date(), 1));
@@ -176,19 +160,14 @@ export const TodoContextProvider: VFC<Props> = ({ children }) => {
   };
 
   // 選択したタスクの情報
-  const [currentTask, setCurrentTask] = useState({
-    active: false,
-    id: '',
-  });
+  const [currentTask, setCurrentTask] = useState('');
   // 選択したタスクを編集する
   const editTask = (id: string, content: string) => {
-    setCurrentTask({
-      active: true,
-      id: id,
-    });
     ref.current?.focus();
+    setCurrentTask(id);
     setText(content);
   };
+
   // 選択したタスクを更新する
   const updateTask = (label: string) => {
     const date = (): string | null => {
@@ -203,9 +182,9 @@ export const TodoContextProvider: VFC<Props> = ({ children }) => {
     };
 
     setData((prevData) => [
-      ...prevData.filter((item) => item.id !== currentTask.id),
+      ...prevData.filter((item) => item.id !== currentTask),
       ...prevData
-        .filter((item) => item.id === currentTask.id)
+        .filter((item) => item.id === currentTask)
         .map((item) => ({
           ...item,
           content: text,
@@ -213,10 +192,7 @@ export const TodoContextProvider: VFC<Props> = ({ children }) => {
         })),
     ]);
 
-    setCurrentTask({
-      active: false,
-      id: '',
-    });
+    setCurrentTask('');
     setText('');
   };
 
