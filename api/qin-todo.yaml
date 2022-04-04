@@ -79,9 +79,10 @@ paths:
           required: true
       tags:
         - user
+      description: セッションIDを使ってユーザー情報を取得する
   /auth/login:
     post:
-      summary: login
+      summary: ログイン
       operationId: post-auth-login
       responses:
         '200':
@@ -212,9 +213,10 @@ paths:
         description: メールアドレスとパスワードをリクエストボディに含める
       tags:
         - auth
+      description: メールアドレスとパスワードでユーザー認証を行う
   /auth/logout:
     post:
-      summary: logout
+      summary: ログアウト
       tags:
         - auth
       responses:
@@ -266,7 +268,7 @@ paths:
           name: session
           description: セッションID
           required: true
-      description: ログアウト機能
+      description: セッションIDを無効化してログアウトする
   /auth/register:
     post:
       summary: ユーザー登録
@@ -365,3 +367,366 @@ paths:
                   email: test@example.com
                   password: test123
         description: ''
+      description: メールアドレスとパスワードでユーザー登録をする
+  /todos:
+    get:
+      summary: ToDo取得
+      tags:
+        - todos
+      responses:
+        '200':
+          description: ToDo取得成功
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    items:
+                      - id: id001
+                        content: 洗濯物を干す
+                        completed: true
+                        execution_date: '2022-04-01 00:00:00'
+                properties:
+                  items:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          minLength: 1
+                        content:
+                          type: string
+                          minLength: 1
+                        completed:
+                          type: boolean
+                        execution_date:
+                          type: string
+                          minLength: 1
+                          nullable: true
+                      required:
+                        - id
+                        - content
+                        - completed
+                        - execution_date
+                required:
+                  - items
+              examples:
+                example-1:
+                  value:
+                    items:
+                      - id: id001
+                        content: 洗濯物を干す
+                        completed: true
+                        execution_date: '2019-10-06 00:00:00'
+                      - id: id002
+                        content: 買い物
+                        completed: false
+                        execution_date: null
+        '401':
+          description: セッションIDが無効である場合
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  error:
+                    type: string
+                    minLength: 1
+                required:
+                  - error
+                x-examples:
+                  example-1:
+                    error: string
+              examples:
+                example-1:
+                  value:
+                    error: string
+      operationId: get-todos
+      description: 一意のユーザーのToDoリスト全てを取得する
+      parameters:
+        - schema:
+            type: string
+          in: cookie
+          name: session
+          description: セッション ID
+          required: true
+    post:
+      summary: ToDo作成
+      operationId: post-todos
+      responses:
+        '201':
+          description: ToDo作成成功
+        '400':
+          description: リクエストボディに不正なデータを指定した場合
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  error:
+                    type: string
+                    minLength: 1
+                required:
+                  - error
+                x-examples:
+                  example-1:
+                    error: string
+        '401':
+          description: セッションIDが無効である場合
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  error:
+                    type: string
+                    minLength: 1
+                required:
+                  - error
+                x-examples:
+                  example-1:
+                    error: string
+      description: ToDoを作成する
+      parameters:
+        - schema:
+            type: string
+          in: cookie
+          name: session
+          description: セッションID
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              x-examples:
+                example-1:
+                  id: id001
+                  content: 洗濯物を干す
+                  completed: true
+                  execution_date: '2019-10-06 00:00:00'
+              properties:
+                content:
+                  type: string
+                  minLength: 1
+                execution_date:
+                  type: string
+                  minLength: 1
+                  nullable: true
+              required:
+                - content
+                - execution_date
+            examples:
+              example-1:
+                value:
+                  content: string
+                  execution_date: string
+        description: ''
+      tags:
+        - todos
+    parameters: []
+  '/todos/{todo_id}':
+    parameters:
+      - schema:
+          type: string
+        name: todo_id
+        in: path
+        required: true
+    put:
+      summary: ToDo更新
+      tags:
+        - todos
+      responses:
+        '200':
+          description: 更新成功
+        '400':
+          description: 'リクエストボディやtodo_idに不正なデータを指定した場合 '
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  error:
+                    type: string
+                    minLength: 1
+                required:
+                  - error
+                x-examples:
+                  example-1:
+                    error: string
+        '401':
+          description: セッションIDが無効である場合
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  error:
+                    type: string
+                    minLength: 1
+                required:
+                  - error
+                x-examples:
+                  example-1:
+                    error: string
+        '403':
+          description: 他のユーザーが作成したToDoを更新しようとした場合
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  error:
+                    type: string
+                    minLength: 1
+                required:
+                  - error
+                x-examples:
+                  example-1:
+                    error: string
+      operationId: put-todos-todo_id
+      description: 指定されたtodo_idに紐づくToDoデータを更新する
+      parameters:
+        - schema:
+            type: string
+          in: cookie
+          name: session
+          description: セッションID
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              x-examples:
+                example-1:
+                  id: id001
+                  content: 洗濯物を干す
+                  completed: true
+                  execution_date: '2019-10-06 00:00:00'
+              properties:
+                content:
+                  type: string
+                  minLength: 1
+                completed:
+                  type: boolean
+                execution_date:
+                  type: string
+                  minLength: 1
+                  nullable: true
+            examples:
+              example-1:
+                value:
+                  content: string
+                  completed: true
+                  execution_date: string
+          application/xml:
+            schema:
+              type: object
+              properties: {}
+          multipart/form-data:
+            schema:
+              type: object
+              properties: {}
+          text/html:
+            schema:
+              type: object
+              properties: {}
+          text/plain:
+            schema:
+              type: object
+              properties: {}
+          application/EDI-X12:
+            schema:
+              type: object
+              properties: {}
+          application/javascript:
+            schema:
+              type: object
+              properties: {}
+          application/EDIFACT:
+            schema:
+              type: object
+              properties: {}
+          application/atom+xml:
+            schema:
+              type: object
+              properties: {}
+          application/font-woff:
+            schema:
+              type: object
+              properties: {}
+          application/gzip:
+            schema:
+              type: object
+              properties: {}
+          application/octet-stream:
+            schema:
+              type: object
+              properties: {}
+          application/ogg:
+            schema:
+              type: object
+              properties: {}
+        description: ''
+    delete:
+      summary: ToDo削除
+      operationId: delete-todos-todo_id
+      responses:
+        '200':
+          description: 　削除成功
+        '401':
+          description: セッションIDが無効である場合
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  error:
+                    type: string
+                    minLength: 1
+                required:
+                  - error
+                x-examples:
+                  example-1:
+                    error: string
+        '403':
+          description: 他のユーザーが作成したToDoを削除しようとした場合
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  error:
+                    type: string
+                    minLength: 1
+                required:
+                  - error
+                x-examples:
+                  example-1:
+                    error: string
+      parameters:
+        - schema:
+            type: string
+          in: cookie
+          name: session
+          required: true
+          description: セッションID
+      tags:
+        - todos
+      description: 指定されたtodo_idに紐づくToDoデータを削除する
