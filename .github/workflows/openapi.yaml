@@ -15,7 +15,7 @@ jobs:
         node: ["12","14"]
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3 # これでレポジトリからコードを取得できるけど、なんでか分からん
 
       - name: node setting
         uses: actions/setup-node@v3
@@ -33,3 +33,16 @@ jobs:
 
       - name: output file
         run: cat ./redoc-static.html
+
+      # コピペ https://hatolabo.com/programming/%E3%80%90github-actions-gcs%E3%80%91githubactions%E3%81%A7cloud-storage%E3%81%AB%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB%E3%82%92%E3%82%A2%E3%83%83%E3%83%97%E3%83%AD%E3%83%BC%E3%83%89%E3%81%99%E3%82%8B
+      - uses: google-github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - id: upload-file
+        uses: google-github-actions/upload-cloud-storage@main
+        with:
+          path: ./redoc-static.html
+          destination: qin-todo-team-l-openapi/file
