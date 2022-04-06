@@ -1,0 +1,15 @@
+name: Action Sample
+
+on:
+  push:
+    branches:
+      # - master
+      - feature/aopontann-github-actions
+  workflow_dispatch:
+
+jobs:
+  print-hello-world:
+    runs-on: ubuntu-latest
+    steps:
+      - name: execute echo command
+        run: echo "Hello World!"
