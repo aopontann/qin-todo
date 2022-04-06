@@ -2,6 +2,7 @@ openapi: 3.0.0
 info:
   title: qin-todo
   version: '0.1'
+  description: qin-todoのAPI
 servers:
   - url: 'http://localhost:18080'
 paths:
