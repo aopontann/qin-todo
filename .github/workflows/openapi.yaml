@@ -14,6 +14,9 @@ jobs:
       matrix:
         node: ["12","14"]
     steps:
+      - name: checkout  # コードを取得するみたい？
+        uses: actions/checkout@feature/aopontann-github-actions
+
       - name: node setting
         uses: actions/setup-node@v3
         with:
