@@ -19,6 +19,7 @@ services:
       - ./go.sum:/app/go.sum
       - ./main.go:/app/main.go
       - ./routes.go:/app/routes.go
+      - ./middleware.go:/app/middleware.go
     ports:
       - 18080:8080
     depends_on:
