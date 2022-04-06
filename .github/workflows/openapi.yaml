@@ -3,8 +3,7 @@ name: OpenAPI generate to html deploy for GCS
 on:
   push:
     branches:
-      # - master
-      - feature/aopontann-github-actions
+      - develop
   workflow_dispatch:
 
 jobs:
