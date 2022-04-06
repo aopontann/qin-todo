@@ -19,6 +19,9 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
+      - name: ls # 中身見てみる
+        run: ls -a
+
       - name: install redoc
         run: npm install -g redoc-cli
 
