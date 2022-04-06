@@ -1,0 +1,29 @@
+name: OpenAPI generate to html deploy for GCS
+
+on:
+  push:
+    branches:
+      # - master
+      - feature/aopontann-github-actions
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        node: ["12","14"]
+    steps:
+      - name: node setting
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: install redoc
+        run: npm install -g redoc-cli
+
+      - name: build OpenAPI file
+        run: redoc-cli bundle ./api/qin-todo.yaml
+
+      - name: output file
+        run: cat ./redoc-static.html
