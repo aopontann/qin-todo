@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        node: ["12","14"]
+        node: ["14"]
     steps:
       - name: checkout
         uses: actions/checkout@v3 # これでレポジトリからコードを取得できるけど、なんでか分からん
@@ -22,17 +22,11 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
-      - name: ls # 中身見てみる
-        run: ls -a
-
       - name: install redoc
         run: npm install -g redoc-cli
 
       - name: build OpenAPI file
         run: redoc-cli bundle ./api/qin-todo.yaml
-
-      - name: output file
-        run: cat ./redoc-static.html
 
       - id: 'auth'
         name: 'Authenticate to Google Cloud'
@@ -44,4 +38,4 @@ jobs:
         uses: google-github-actions/upload-cloud-storage@main
         with:
           path: ./redoc-static.html
-          destination: qin-todo-team-l-openapi/file
+          destination: qin-todo-team-l-openapi
