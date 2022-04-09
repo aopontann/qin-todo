@@ -41,6 +41,12 @@ func InitRouter() *gin.Engine {
 		user.GET("/", handler.GetUser)
 	}
 
+	todo := r.Group("/todo")
+	{
+		todo.Use(MWGetUserID())
+		todo.GET("/", handler.GetTodo)
+	}
+
 	// 本番環境では使わない検証用パス
 	demo := r.Group("/demo")
 	{
