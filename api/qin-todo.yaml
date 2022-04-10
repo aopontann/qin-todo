@@ -6,7 +6,7 @@ info:
 servers:
   - url: 'http://localhost:18080'
 paths:
-  /user:
+  /users:
     get:
       summary: ユーザー情報取得
       operationId: get-user
@@ -81,6 +81,7 @@ paths:
       tags:
         - user
       description: セッションIDを使ってユーザー情報を取得する
+    parameters: []
   /auth/login:
     post:
       summary: ログイン
@@ -406,9 +407,7 @@ paths:
                         completed:
                           type: boolean
                         execution_date:
-                          type: string
-                          minLength: 1
-                          nullable: true
+                          $ref: '#/components/schemas/execution_date'
                       required:
                         - id
                         - content
@@ -420,13 +419,21 @@ paths:
                 example-1:
                   value:
                     items:
-                      - id: id001
-                        content: 洗濯物を干す
-                        completed: true
-                        execution_date: '2019-10-06 00:00:00'
-                      - id: id002
-                        content: 買い物
+                      - id: '1'
+                        content: デモ1
                         completed: false
+                        execution_date:
+                          String: '2019-10-04 00:00:00'
+                          Valid: true
+                      - id: '2'
+                        content: デモ2
+                        completed: true
+                        execution_date:
+                          String: '2019-10-05 00:00:00'
+                          Valid: true
+                      - id: '4'
+                        content: デモ4
+                        completed: true
                         execution_date: null
         '401':
           description: セッションIDが無効である場合
@@ -731,3 +738,23 @@ paths:
       tags:
         - todos
       description: 指定されたtodo_idに紐づくToDoデータを削除する
+components:
+  schemas:
+    execution_date:
+      description: ''
+      type: object
+      x-examples:
+        example-1:
+          String: '2019-10-04 00:00:00'
+          Valid: true
+      nullable: true
+      properties:
+        String:
+          type: string
+          minLength: 1
+        Valid:
+          type: boolean
+      required:
+        - String
+        - Valid
+  securitySchemes: {}
