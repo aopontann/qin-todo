@@ -8,10 +8,15 @@ import (
 )
 
 type TodoListInfo struct {
-	Id             string `json:"id"`
-	Content        string `json:"content"`
-	Completed      bool `json:"completed"`
+	Id             string          `json:"id"`
+	Content        string          `json:"content"`
+	Completed      bool            `json:"completed"`
 	Execution_date *sql.NullString `json:"execution_date"`
+}
+
+type TodoRequestBody struct {
+	Content        string `json:"content"`
+	Execution_date string `json:"execution_date"`
 }
 
 func GetTodo(c *gin.Context) {
@@ -48,4 +53,34 @@ func GetTodo(c *gin.Context) {
 		"items": todoList,
 	})
 
+}
+
+func PostTodo(c *gin.Context) {
+	var reqb TodoRequestBody
+	err := c.ShouldBindJSON(&reqb)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	userId := c.MustGet("userId").(string)
+	ulid := common.GetULID()
+	db := common.GetDB()
+	
+	if reqb.Execution_date == "" {
+		_, err := db.Exec("INSERT INTO todo_list (id, content, user_id) VALUES (?,?,?)", ulid, reqb.Content, userId)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(201, gin.H{"id": ulid, "content": reqb.Content, "execution_date": nil, "user_id": userId})
+
+	} else {
+		_, err := db.Exec("INSERT INTO todo_list (id, content, execution_date, user_id) VALUES (?,?,?,?)", ulid, reqb.Content, reqb.Execution_date, userId)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(201, gin.H{"id": ulid, "content": reqb.Content, "execution_date": reqb.Execution_date, "user_id": userId})
+	}
 }

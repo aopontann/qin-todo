@@ -502,7 +502,9 @@ paths:
                 x-examples:
                   example-1:
                     error: string
-      description: ToDoを作成する
+      description: |-
+        ToDoを作成する
+        execution_dateにはUTCで"2020-12-25 00:00:00"形式を指定してください
       parameters:
         - schema:
             type: string
@@ -529,10 +531,8 @@ paths:
                 execution_date:
                   type: string
                   minLength: 1
-                  nullable: true
               required:
                 - content
-                - execution_date
             examples:
               example-1:
                 value:
