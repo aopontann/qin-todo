@@ -529,10 +529,8 @@ paths:
                 execution_date:
                   type: string
                   minLength: 1
-                  nullable: true
               required:
                 - content
-                - execution_date
             examples:
               example-1:
                 value:
