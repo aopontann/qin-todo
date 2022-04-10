@@ -161,10 +161,7 @@ func UserRegister(c *gin.Context) {
 		return
 	}
 
-	// ULIDの作成
-	t := time.Now()
-	entropy := ulid.Monotonic(rand.New(rand.NewSource(t.UnixNano())), 0)
-	id := ulid.MustNew(ulid.Timestamp(t), entropy)
+	id := common.GetULID()
 
 	// パスワードをハッシュ化
 	hashed, _ := bcrypt.GenerateFromPassword([]byte(reqb.Password), 10)
@@ -173,7 +170,7 @@ func UserRegister(c *gin.Context) {
 	db := common.GetDB()
 	// idと"名前"、メールアドレス、ハッシュ化したパスワードをDBに保存する(ユーザー名のデフォルトをとりあえず"名前"しておく)
 	// 名前の決め方や何かいい案があれば教えてほしい
-	_, err := db.Exec("INSERT INTO users (id, name, email, password) VALUES (?,?,?,?)", id.String(), "名前", reqb.Email, string(hashed))
+	_, err := db.Exec("INSERT INTO users (id, name, email, password) VALUES (?,?,?,?)", id, "名前", reqb.Email, string(hashed))
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
