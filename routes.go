@@ -35,13 +35,13 @@ func InitRouter() *gin.Engine {
 
 	}
 
-	user := r.Group("/user")
+	user := r.Group("/users")
 	{
 		user.Use(MWGetUserID())
 		user.GET("/", handler.GetUser)
 	}
 
-	todo := r.Group("/todo")
+	todo := r.Group("/todos")
 	{
 		todo.Use(MWGetUserID())
 		todo.GET("/", handler.GetTodo)
