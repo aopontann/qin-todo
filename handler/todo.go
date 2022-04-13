@@ -99,10 +99,23 @@ func PutTodo(c *gin.Context) {
 		return
 	}
 
+	db := common.GetDB()
 	userId := c.MustGet("userId").(string)
 	todoId := c.Param("todo_id")
 
-	tx, err := common.DB.Begin()
+	// ユーザーが作成したToDoかチェック
+	var id string
+	err = db.QueryRow("SELECT id FROM todo_list WHERE id = ? AND user_id = ?", todoId, userId).Scan(&id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(403, gin.H{"error": "Todos created by other users cannot be updated, or a non-existent todo ID is specified"})
+		} else {
+			c.JSON(500, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	tx, err := db.Begin()
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -125,23 +138,14 @@ func PutTodo(c *gin.Context) {
 		}
 	}
 
-	var completed int
-	err = tx.QueryRow("SELECT completed FROM todo_list WHERE id = ? AND user_id = ?", todoId, userId).Scan(&completed)
-	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
-		return
-	}
-
 	reqbComp := 0
 	if reqb.Completed {
 		reqbComp = 1
 	}
-	if completed != reqbComp {
-		_, err := tx.Exec("UPDATE todo_list SET completed = ? WHERE id = ? AND user_id = ? LIMIT 1", reqbComp, todoId, userId)
-		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
-			return
-		}
+	_, err = tx.Exec("UPDATE todo_list SET completed = ? WHERE id = ? AND user_id = ? AND NOT completed = ? LIMIT 1", reqbComp, todoId, userId, reqbComp)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
 	}
 
 	err = tx.Commit()
@@ -151,4 +155,29 @@ func PutTodo(c *gin.Context) {
 	}
 	c.Status(200)
 
+}
+
+func DeleteTodo(c *gin.Context) {
+	db := common.GetDB()
+	userId := c.MustGet("userId").(string)
+	todoId := c.Param("todo_id")
+
+	// ユーザーが作成したToDoかチェック
+	var id string
+	err := db.QueryRow("SELECT id FROM todo_list WHERE id = ? AND user_id = ?", todoId, userId).Scan(&id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(403, gin.H{"error": "Unable to delete a Todo created by another user, or a non-existent Todo ID is specified"})
+		} else {
+			c.JSON(500, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	_, err = db.Exec("DELETE FROM todo_list WHERE id = ? AND user_id = ? LIMIT 1", todoId, userId)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.Status(200)
 }
