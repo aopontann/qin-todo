@@ -87,7 +87,7 @@ func PostTodo(c *gin.Context) {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(201, gin.H{"id": ulid, "content": reqb.Content, "execution_date": reqb.Execution_date, "user_id": userId})
+		c.Status(201)
 	}
 }
 
@@ -149,6 +149,6 @@ func PutTodo(c *gin.Context) {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(201, gin.H{"reqb": reqb})
+	c.Status(200)
 
 }
