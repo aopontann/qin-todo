@@ -19,6 +19,12 @@ type TodoRequestBody struct {
 	Execution_date string `json:"execution_date"`
 }
 
+type PutTodoRequestBody struct {
+	Content        string `json:"content"`
+	Completed      bool   `json:"completed,omitempty"`
+	Execution_date string `json:"execution_date"`
+}
+
 func GetTodo(c *gin.Context) {
 	var (
 		id             string
@@ -66,7 +72,7 @@ func PostTodo(c *gin.Context) {
 	userId := c.MustGet("userId").(string)
 	ulid := common.GetULID()
 	db := common.GetDB()
-	
+
 	if reqb.Execution_date == "" {
 		_, err := db.Exec("INSERT INTO todo_list (id, content, user_id) VALUES (?,?,?)", ulid, reqb.Content, userId)
 		if err != nil {
@@ -83,4 +89,66 @@ func PostTodo(c *gin.Context) {
 		}
 		c.JSON(201, gin.H{"id": ulid, "content": reqb.Content, "execution_date": reqb.Execution_date, "user_id": userId})
 	}
+}
+
+func PutTodo(c *gin.Context) {
+	var reqb PutTodoRequestBody
+	err := c.ShouldBindJSON(&reqb)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	userId := c.MustGet("userId").(string)
+	todoId := c.Param("todo_id")
+
+	tx, err := common.DB.Begin()
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	defer tx.Rollback()
+
+	if reqb.Content != "" {
+		_, err := tx.Exec("UPDATE todo_list SET content = ? WHERE id = ? AND user_id = ? LIMIT 1", reqb.Content, todoId, userId)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	if reqb.Execution_date != "" {
+		_, err := tx.Exec("UPDATE todo_list SET execution_date = ? WHERE id = ? AND user_id = ? LIMIT 1", reqb.Execution_date, todoId, userId)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	var completed int
+	err = tx.QueryRow("SELECT completed FROM todo_list WHERE id = ? AND user_id = ?", todoId, userId).Scan(&completed)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	reqbComp := 0
+	if reqb.Completed {
+		reqbComp = 1
+	}
+	if completed != reqbComp {
+		_, err := tx.Exec("UPDATE todo_list SET completed = ? WHERE id = ? AND user_id = ? LIMIT 1", reqbComp, todoId, userId)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(201, gin.H{"reqb": reqb})
+
 }
