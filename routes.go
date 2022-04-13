@@ -46,6 +46,7 @@ func InitRouter() *gin.Engine {
 		todo.Use(MWGetUserID())
 		todo.GET("/", handler.GetTodo)
 		todo.POST("/", handler.PostTodo)
+		todo.PUT("/:todo_id", handler.PutTodo)
 	}
 
 	// 本番環境では使わない検証用パス
