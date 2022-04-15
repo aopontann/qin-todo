@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/aopontann/qin-todo/handler"
+	"github.com/aopontann/qin-todo/backend/handler"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -39,6 +39,7 @@ func InitRouter() *gin.Engine {
 	{
 		user.Use(MWGetUserID())
 		user.GET("/", handler.GetUser)
+		user.PUT("/", handler.PutUser)
 	}
 
 	todo := r.Group("/todos")
