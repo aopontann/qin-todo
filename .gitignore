@@ -2,5 +2,6 @@ mysql_data
 tmp
 .env
 client_secret.json
+gcs_secret.json
 token.json
 .DS_Store
