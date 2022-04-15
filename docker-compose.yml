@@ -3,7 +3,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: ./build/Dockerfile
+      dockerfile: ./.devcontainer/Dockerfile
     # M1チップの場合コメント外す
     # platform: 'linux/amd64'
     container_name: app
@@ -11,21 +11,13 @@ services:
     tty: true
     # ホストPCとコンテナ内とのデータの同期
     volumes:
-      - ./common:/app/common
-      - ./configs:/app/configs
-      - ./handler:/app/handler
-      - ./tools/database:/app/tools/database
-      - ./go.mod:/app/go.mod
-      - ./go.sum:/app/go.sum
-      - ./main.go:/app/main.go
-      - ./routes.go:/app/routes.go
-      - ./middleware.go:/app/middleware.go
+      - ./backend:/app/
     ports:
       - 18080:8080
     depends_on:
       - db
     # 開発環境の起動
-    command: "air -c configs/.air.toml"
+    command: "air -c backend/.air.toml"
 
   db: # qin-memo-backendのやつを参考にする
     image: mysql:5.7 # mysql:8.0でもいいかも
@@ -43,8 +35,8 @@ services:
     command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci #mysqlで日本語を使うようにする設定だと思う。
     # mysqlのデータをホストPCに同期（コンテナが消えてしまってもホストPCにデータが残る）
     volumes:
-      - ./tools/docker/db/mysql_data:/var/lib/mysql #テーブルデータ
-      - ./tools/docker/db/my.cnf:/etc/mysql/conf.d/my.cnf #設定データ
+      - ./docker/mysql/mysql_data:/var/lib/mysql #テーブルデータ
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf #設定データ
       # - ./docker/db/sql:/docker-entrypoint-initdb.d #何かわからん。dbの初期化に関係してそう。とりあえず、コメント化しておく
     ports:
       - 13306:3306
@@ -59,12 +51,3 @@ services:
       # - "./tools/docker/db/redis.conf:/usr/local/etc/redis/redis.conf"
       # - "./tools/docker/db/redis_data:/data"
     # command: "redis-server /usr/local/etc/redis/redis.conf"
-
-  prism:
-    image: stoplight/prism:4
-    command: 'mock -h 0.0.0.0 /tmp/qin-todo.yaml'
-    volumes:
-      - ./api/qin-todo.yaml:/tmp/qin-todo.yaml:ro
-    ports:
-      # Serve the mocked API locally as available on port 8080
-      - '18081:4010'
