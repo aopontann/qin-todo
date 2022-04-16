@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/aopontann/qin-todo/common"
+	"github.com/aopontann/qin-todo/backend/common"
 	"github.com/gin-gonic/gin"
 )
 

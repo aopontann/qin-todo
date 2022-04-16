@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/joho/godotenv"
-	"github.com/aopontann/qin-todo/common"
+	"github.com/aopontann/qin-todo/backend/common"
 )
 
 func main() {
