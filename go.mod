@@ -1,4 +1,4 @@
-module github.com/aopontann/qin-todo/backend
+module github.com/aopontann/qin-todo
 
 go 1.17
 
