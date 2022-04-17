@@ -6,6 +6,17 @@
   .shadow-t {
     box-shadow: 0px -1px 1px rgba(0, 0, 0, 0.12);
   }
+  .bg-gradient {
+    background-image: radial-gradient(at 0% 0%, #fac2b8, transparent), radial-gradient(at 100% 0%, #f8fa8b, transparent),
+      radial-gradient(at 100% 100%, #c3f8de, transparent), radial-gradient(at 0% 100%, #d6d4e2, transparent);
+  }
+  .mx-break {
+    margin-right: calc(50% - 50vw);
+    margin-left: calc(50% - 50vw);
+  }
+  .bg-filter {
+    backdrop-filter: blur(12px);
+  }
 }
 
 html,

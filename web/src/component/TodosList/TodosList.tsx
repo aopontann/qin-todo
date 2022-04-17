@@ -8,7 +8,7 @@ export const TodosList = () => {
   return (
     <div className='grid gap-8'>
       {todosList.map((todosItem, i) => (
-        <section className={`${todosItem.color} grid gap-2`} key={i}>
+        <section className={`${todosItem.color} grid gap-3`} key={i}>
           <p className={`text-h2 font-bold text-current`}>{todosItem.label}</p>
           <ul>
             {todosItem.todos.map((todo, i) => (

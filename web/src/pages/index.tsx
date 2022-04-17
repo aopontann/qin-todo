@@ -9,6 +9,7 @@ import { formatInTimeZone } from 'date-fns-tz';
 import { useTodoContext } from 'context/TodoContext';
 import { TodosList } from 'component/TodosList';
 import { TodoInput } from 'component/TodoInput';
+import { useSession, signIn, signOut } from 'next-auth/react';
 
 type Items = {
   id: string;
@@ -67,6 +68,30 @@ const Home: NextPage = () => {
       resizeObserver.disconnect();
     };
   }, [footerHeight]);
+
+  const hoge = {
+    email: 'test1@example.com',
+    password: 'test123',
+  };
+
+  const param = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+    },
+    body: JSON.stringify(hoge),
+  };
+
+  useEffect(() => {
+    fetch('http://localhost:18080/auth/login', param)
+      .then((res) => res.json())
+      .then((res) => {
+        console.log(res.sessionId);
+        fetch('http://localhost:18080/todos?session="84fe2fed-a67e-4e6b-9df8-7d296ad1a353"').then((res) => {
+          console.log(res);
+        });
+      });
+  }, []);
 
   return (
     <div className='px-6' style={{ paddingBottom: `calc(2rem + ${footerHeight + 'px'})` }}>
