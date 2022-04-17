@@ -1,9 +1,8 @@
-package handler
+package main
 
 import (
 	"database/sql"
 
-	"github.com/aopontann/qin-todo/backend/common"
 	"github.com/gin-gonic/gin"
 )
 
@@ -25,7 +24,7 @@ type PutTodoRequestBody struct {
 	Execution_date string `json:"execution_date"`
 }
 
-func GetTodo(c *gin.Context) {
+func GetTodoHandler(c *gin.Context) {
 	var (
 		id             string
 		content        string
@@ -37,8 +36,6 @@ func GetTodo(c *gin.Context) {
 	// middlewareで認証をして成功すると、ここでユーザーIDを取得できる
 	userId := c.MustGet("userId").(string)
 
-	// MySQLに保存されているToDo情報を取得する
-	db := common.GetDB()
 	rows, err := db.Query("SELECT id, content, completed, execution_date FROM todo_list WHERE user_id = ? AND (completed = 0 OR execution_date IS NULL OR execution_date > now())", userId)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
@@ -58,10 +55,9 @@ func GetTodo(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"items": todoList,
 	})
-
 }
 
-func PostTodo(c *gin.Context) {
+func PostTodoHandler(c *gin.Context) {
 	var reqb TodoRequestBody
 	err := c.ShouldBindJSON(&reqb)
 	if err != nil {
@@ -70,8 +66,7 @@ func PostTodo(c *gin.Context) {
 	}
 
 	userId := c.MustGet("userId").(string)
-	ulid := common.GetULID()
-	db := common.GetDB()
+	ulid := GetULID()
 
 	if reqb.Execution_date == "" {
 		_, err := db.Exec("INSERT INTO todo_list (id, content, user_id) VALUES (?,?,?)", ulid, reqb.Content, userId)
@@ -91,7 +86,7 @@ func PostTodo(c *gin.Context) {
 	}
 }
 
-func PutTodo(c *gin.Context) {
+func PutTodoHandler(c *gin.Context) {
 	var reqb PutTodoRequestBody
 	err := c.ShouldBindJSON(&reqb)
 	if err != nil {
@@ -99,7 +94,6 @@ func PutTodo(c *gin.Context) {
 		return
 	}
 
-	db := common.GetDB()
 	userId := c.MustGet("userId").(string)
 	todoId := c.Param("todo_id")
 
@@ -157,8 +151,7 @@ func PutTodo(c *gin.Context) {
 
 }
 
-func DeleteTodo(c *gin.Context) {
-	db := common.GetDB()
+func DeleteTodoHandler(c *gin.Context) {
 	userId := c.MustGet("userId").(string)
 	todoId := c.Param("todo_id")
 
