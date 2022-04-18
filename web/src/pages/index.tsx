@@ -9,50 +9,71 @@ import { formatInTimeZone } from 'date-fns-tz';
 import { useTodoContext } from 'context/TodoContext';
 import { TodosList } from 'component/TodosList';
 import { TodoInput } from 'component/TodoInput';
-import { useSession, signIn, signOut } from 'next-auth/react';
+import { useUserContext } from 'context/UserContext';
+import { useRouter } from 'next/router';
 
 type Items = {
   id: string;
   content: string;
   completed: boolean;
-  execution_date: string | null;
+  execution_date: {
+    String: string;
+    valid: boolean;
+  };
 }[];
-
-// apiレスポンス 削除予定
-const res: { items: Items } = {
-  items: [
-    {
-      id: 'id001',
-      content: '買い物する',
-      completed: false,
-      execution_date: '2019-10-06 00:00:00',
-    },
-    {
-      id: 'id002',
-      content: '洗濯物を干す',
-      completed: true,
-      execution_date: null,
-    },
-    {
-      id: 'id003',
-      content: '※常に明日になるタスク',
-      completed: true,
-      execution_date: formatInTimeZone(addDays(new Date(), 1), 'UTC', 'yyyy-MM-dd HH:mm:ss'),
-      // テスト用 常に明日の日付になる
-    },
-  ],
-};
 
 const Home: NextPage = () => {
   const { data, setData, handleTodosList } = useTodoContext();
   const [footerHeight, setFooterHeight] = useState(0);
   const footerRef = useRef<HTMLElement>(null);
+  const { setUser } = useUserContext();
+
+  const router = useRouter();
 
   // APIを叩く処理の予定
-  useEffect(() => setData(res.items), []);
+  useEffect(() => {
+    const param: RequestInit = {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        Accept: 'application/json',
+      },
+    };
+
+    fetch('/users', param)
+      .then((res) => res.json())
+      .then((res) => {
+        if (!res.error) {
+          setUser(res);
+          return false;
+        }
+        router.push('/login');
+        return false;
+      });
+  }, []);
 
   // タスクが増減するたびにフロント用の配列を作成
   useEffect(() => handleTodosList(), [data]);
+
+  useEffect(() => {
+    const param: RequestInit = {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        Accept: 'application/json',
+      },
+    };
+
+    fetch('/todos', param)
+      .then((res) => res.json())
+      .then((res) => {
+        if (!res.error) {
+          setData(res.items);
+        }
+      });
+  }, []);
 
   // footerの高さを取得してタスクが多くなった場合に最下部のタスクがinputに埋もれないように
   useEffect(() => {
@@ -69,29 +90,17 @@ const Home: NextPage = () => {
     };
   }, [footerHeight]);
 
-  const hoge = {
-    email: 'test1@example.com',
-    password: 'test123',
+  const onLogout = () => {
+    const param = {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        Accept: 'application/json',
+      },
+    };
+    fetch('/auth/logout', param).then((res) => console.log(res));
   };
-
-  const param = {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-    },
-    body: JSON.stringify(hoge),
-  };
-
-  useEffect(() => {
-    fetch('http://localhost:18080/auth/login', param)
-      .then((res) => res.json())
-      .then((res) => {
-        console.log(res.sessionId);
-        fetch('http://localhost:18080/todos?session="84fe2fed-a67e-4e6b-9df8-7d296ad1a353"').then((res) => {
-          console.log(res);
-        });
-      });
-  }, []);
 
   return (
     <div className='px-6' style={{ paddingBottom: `calc(2rem + ${footerHeight + 'px'})` }}>
@@ -102,6 +111,65 @@ const Home: NextPage = () => {
         <link rel='icon' href='/favicon.ico' />
       </Head>
 
+      {/* <div className='flex justify-between'>
+        <button onClick={onLogin}>ログインする</button>
+        <button onClick={onLogout}>ログアウトする</button>
+        <button
+          onClick={() => {
+            const param = {
+              method: 'GET',
+              credentials: 'include',
+              headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+                Accept: 'application/json',
+              },
+            };
+            fetch('/todos', param)
+              .then((res) => res.json())
+              .then((res) => console.log(res));
+          }}
+        >
+          todos
+        </button>
+        <button
+          onClick={() => {
+            const param = {
+              method: 'GET',
+              credentials: 'include',
+              headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+                Accept: 'application/json',
+              },
+            };
+            fetch('/users', param)
+              .then((res) => res.json())
+              .then((res) => console.log(res));
+          }}
+        >
+          ユーザー情報
+        </button>
+        <button
+          onClick={() => {
+            const hoge = {
+              content: 'test1@example.com',
+              execution_date: '2020-12-25 00:00:00',
+            };
+
+            const param = {
+              method: 'POST',
+              credentials: 'include',
+              headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+                Accept: 'application/json',
+              },
+              body: JSON.stringify(hoge),
+            };
+            fetch('/todos', param).then((res) => console.log(res));
+          }}
+        >
+          追加
+        </button>
+      </div> */}
       <Header></Header>
 
       <Body>

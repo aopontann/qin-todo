@@ -31,7 +31,10 @@ type Items = {
   id: string;
   content: string;
   completed: boolean;
-  execution_date: string | null;
+  execution_date: {
+    String: string;
+    valid: boolean;
+  };
 }[];
 
 type TodosList = {
@@ -77,7 +80,7 @@ export const TodoContextProvider: VFC<Props> = ({ children }) => {
       ...prevTodosList.map((prevTodosItem) => ({
         ...prevTodosItem,
         todos: data.filter((todo) => {
-          const date = todo.execution_date;
+          const date = todo.execution_date.String;
           switch (prevTodosItem.label) {
             case prevTodosList[0].label:
               return date === null ? false : !validationTommorow(date);
@@ -188,7 +191,10 @@ export const TodoContextProvider: VFC<Props> = ({ children }) => {
         .map((item) => ({
           ...item,
           content: text,
-          execution_date: date(),
+          execution_date: {
+            String: date(),
+            valid: true,
+          },
         })),
     ]);
 

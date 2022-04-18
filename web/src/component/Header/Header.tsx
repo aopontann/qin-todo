@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { Popover } from '@mantine/core';
+import { useUserContext } from 'context/UserContext';
 
-type Props = {
-  thumbnail?: string;
-};
-
-export const Header: React.VFC<Props> = ({ thumbnail = 'https://placehold.jp/150x150.png' }) => {
+export const Header: React.VFC = () => {
+  const { user } = useUserContext();
   const { data: session } = useSession();
   const [opened, setOpened] = useState(false);
 
@@ -24,7 +22,14 @@ export const Header: React.VFC<Props> = ({ thumbnail = 'https://placehold.jp/150
         target={
           <button className='block' onClick={() => setOpened((o) => !o)}>
             <div className='bg-gradient grid items-center overflow-hidden rounded-full p-[2px]'>
-              <Image className='rounded-full' src={thumbnail} alt='personLogo' width={32} height={32} layout='fixed' />
+              <Image
+                className='rounded-full'
+                src={user.avatar_url !== '' ? user.avatar_url : 'https://placehold.jp/150x150.png'}
+                alt='personLogo'
+                width={32}
+                height={32}
+                layout='fixed'
+              />
             </div>
           </button>
         }
