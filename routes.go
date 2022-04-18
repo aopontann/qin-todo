@@ -46,8 +46,12 @@ func InitRouter() *gin.Engine {
 		todo.Use(MWGetUserID())
 		todo.GET("/", GetTodoHandler)
 		todo.POST("/", PostTodoHandler)
-		todo.PUT("/:todo_id", PutTodoHandler)
-		todo.DELETE("/:todo_id", DeleteTodoHandler)
+		todoPutDelete := todo.Group("/")
+		{
+			todoPutDelete.Use(TodoCheckUser())
+			todoPutDelete.PUT("/:todo_id", PutTodoHandler)
+			todoPutDelete.DELETE("/:todo_id", DeleteTodoHandler)
+		}
 	}
 
 	// 本番環境では使わない検証用パス
