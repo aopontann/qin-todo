@@ -11,6 +11,10 @@ import (
 func GetUserHandler(c *gin.Context) {
 	// middlewareで認証をして成功すると、ここでユーザーIDを取得できる
 	userId := c.MustGet("userId").(string)
+	if userId == "" {
+		c.JSON(401, gin.H{"error": "Invalid session ID."})
+		return
+	}
 
 	userInfo, err := GetUser(userId)
 	if err != nil {
