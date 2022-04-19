@@ -39,11 +39,11 @@ docker-compose exec app /bin/sh
 ```
 1. DBマイグレーション
 ```
-$ goose -dir=tools/database/migrations mysql "user1:pass@tcp(mysql:3306)/qin-todo" up
+$ goose -dir=cmd/db/migrations mysql "user1:pass@tcp(mysql:3306)/qin-todo" up
 ```
 2. デモデータの作成
 ```
-$ go run tools/database/seed.go
+$ go run cmd/db/seed.go
 ```
 
 ### モック
