@@ -557,7 +557,7 @@ paths:
         '200':
           description: 更新成功
         '400':
-          description: 'リクエストボディやtodo_idに不正なデータを指定した場合 '
+          description: 'リクエストボディに不正なデータを指定した場合 '
           content:
             application/json:
               schema:
@@ -589,7 +589,7 @@ paths:
                   example-1:
                     error: string
         '403':
-          description: 他のユーザーが作成したToDoを更新しようとした場合
+          description: 存在しないtodoIDを指定したり、他のユーザーが作成したToDoを更新しようとした場合
           content:
             application/json:
               schema:
@@ -713,7 +713,7 @@ paths:
                   example-1:
                     error: string
         '403':
-          description: 他のユーザーが作成したToDoを削除しようとした場合
+          description: 存在しないtodoIDを指定したり、他のユーザーが作成したToDoを削除しようとした場合
           content:
             application/json:
               schema:

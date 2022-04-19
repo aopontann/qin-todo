@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/aopontann/qin-todo/handler"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -12,52 +11,77 @@ func InitRouter() *gin.Engine {
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 
-	config := cors.DefaultConfig()
-	// すべてのオリジンを許可する(本番環境にデプロイするまでにちゃんと設定する)
-	config.AllowAllOrigins = true
-	r.Use(cors.New(config))
+	r.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"http://localhost:3000"},
+		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders: []string{"Origin", "Session-Id"},
+		ExposeHeaders: []string{"Content-Type", "Content-Length"},
+		AllowCredentials: true,
+		// MaxAge: 24 * time.Hour,
+	}))
 
-	r.GET("/ping", handler.Pon)
+	r.GET("/ping", PonHandler)
 
 	auth := r.Group("/auth")
 	{
 		// google認証画面にリダイレクト
-		auth.GET("/google", handler.GoogleAuthRedirect)
+		auth.GET("/google", GoogleAuthRedirectHandler)
 
 		// トークン取得エンドポイント
-		auth.GET("/token", handler.GoogleAuthGetToken)
+		auth.GET("/token", GoogleAuthGetTokenHandler)
 
-		auth.POST("/register", handler.UserRegister)
+		// ユーザー登録エンドポイント
+		auth.POST("/register", UserRegisterHandler)
 
-		auth.POST("/login", handler.SessionAuthLogin)
+		// メールアドレスとパスワードでログイン
+		auth.POST("/login", SessionAuthLoginHandler)
 
-		auth.POST("/logout", handler.SessionAuthLogout)
-
+		// ログアウト
+		auth.POST("/logout", SessionAuthLogoutHandler)
 	}
 
 	user := r.Group("/users")
 	{
+		// sessionIDを使ってredisからユーザーIDを取得する
 		user.Use(MWGetUserID())
-		user.GET("/", handler.GetUser)
+
+		// ユーザー情報を取得する
+		user.GET("", GetUserHandler)
+
+		// ユーザーの名前とアイコンを変更する
+		user.PUT("", PutUserHandler)
 	}
 
 	todo := r.Group("/todos")
 	{
 		todo.Use(MWGetUserID())
-		todo.GET("/", handler.GetTodo)
-		todo.POST("/", handler.PostTodo)
-		todo.PUT("/:todo_id", handler.PutTodo)
-		todo.DELETE("/:todo_id", handler.DeleteTodo)
+
+		// Todoリストを取得する
+		todo.GET("", GetTodoHandler)
+
+		// Todoを作成する
+		todo.POST("", PostTodoHandler)
+		todoPutDelete := todo.Group("/:todo_id")
+		{
+			// 指定されたTodoが認証されたユーザーが作成したものかチェックする
+			todoPutDelete.Use(TodoCheckUser())
+
+			// Todo情報を更新する
+			todoPutDelete.PUT("", PutTodoHandler)
+
+			// Todoを削除する
+			todoPutDelete.DELETE("", DeleteTodoHandler)
+		}
 	}
 
 	// 本番環境では使わない検証用パス
 	demo := r.Group("/demo")
 	{
 		// todoリスト取得機能(デモ版)
-		demo.GET("/todo_list", handler.GetTodoList)
-		demo.GET("/user_hardCode", handler.GetUserHardCode)
-		demo.POST("/post_user_demo", handler.PostUserDemo)
-		demo.POST("/cookie", handler.CookieDemo)
+		demo.GET("/todo_list", GetTodoListHandler)
+		demo.GET("/user_hardCode", GetUserHardCodeHandler)
+		demo.POST("/post_user_demo", PostUserDemoHandler)
+		demo.POST("/cookie", CookieDemoHandler)
 	}
 
 	return r

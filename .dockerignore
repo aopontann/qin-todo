@@ -1,11 +1,4 @@
 # DockerfileでCOPYしたくないディレクトリ
-.vscode
-api
-build
-tools/docker
-web
+docker/mysql/mysql_data
+tmp
 
-README.md
-docker-compose.yml
-.gitignore
-.dockerignore

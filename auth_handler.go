@@ -1,4 +1,4 @@
-package handler
+package main
 
 import (
 	"encoding/json"
@@ -9,7 +9,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/aopontann/qin-todo/common"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/oklog/ulid/v2"
@@ -28,15 +27,15 @@ type GoogleUserInfo struct {
 	Locale        string `json:"locale"`
 }
 
-func GoogleAuthRedirect(c *gin.Context) {
-	url := common.Conf.AuthCodeURL("state", oauth2.AccessTypeOffline)
+func GoogleAuthRedirectHandler(c *gin.Context) {
+	url := Conf.AuthCodeURL("state", oauth2.AccessTypeOffline)
 	c.Redirect(http.StatusMovedPermanently, url)
 }
 
-func GoogleAuthGetToken(c *gin.Context) {
+func GoogleAuthGetTokenHandler(c *gin.Context) {
 	code := c.Query("code")
 	// 認可コードからトークンを取得する
-	tok, err := common.Conf.Exchange(oauth2.NoContext, code)
+	tok, err := Conf.Exchange(oauth2.NoContext, code)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -66,7 +65,6 @@ func GoogleAuthGetToken(c *gin.Context) {
 	// googleアカウント情報をDBに保存する
 	// id.String()とすることで正常に保存できるようになった。普通のidもulidを返しているが、
 	// valuesにidを指定すると空白で保存される現象が発生した
-	db := common.GetDB()
 	_, err = db.Exec("INSERT IGNORE INTO users (id, name, email, avatar_url, token) VALUES (?, ?, ?, ?, ?)", id.String(), userInfo.Name, userInfo.Email, userInfo.Picture, tok.AccessToken)
 	if err != nil {
 		log.Fatal(err)
@@ -80,7 +78,7 @@ func GoogleAuthGetToken(c *gin.Context) {
 }
 
 // リクエストボディからメールアドレスとパスワードを取得し、セッションIDを発行する
-func SessionAuthLogin(c *gin.Context) {
+func SessionAuthLoginHandler(c *gin.Context) {
 	var (
 		id   string
 		pass string
@@ -93,7 +91,6 @@ func SessionAuthLogin(c *gin.Context) {
 		return
 	}
 
-	db := common.GetDB()
 	// emailが一致するユーザーのidとパスワードを取得する
 	err = db.QueryRow("SELECT id, password FROM users WHERE email = ?", reqb.Email).Scan(&id, &pass)
 	if err != nil {
@@ -115,7 +112,6 @@ func SessionAuthLogin(c *gin.Context) {
 	c.SetCookie("session", sid, 3600, "/", "localhost", false, true)
 
 	// redisにuuidをキーとしてユーザーidを値として保存する(これも有効期限を1時間とする)
-	rdb := common.GetRDB()
 	err = rdb.Set(c, sid, id, 1*time.Hour).Err()
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
@@ -129,7 +125,7 @@ func SessionAuthLogin(c *gin.Context) {
 	})
 }
 
-func SessionAuthLogout(c *gin.Context) {
+func SessionAuthLogoutHandler(c *gin.Context) {
 	// cookieからセッションIDを取得
 	sid, err := c.Cookie("session")
 	if err != nil {
@@ -141,7 +137,6 @@ func SessionAuthLogout(c *gin.Context) {
 	c.SetCookie("session", "", -1, "/", "localhost", false, true)
 
 	// redisに保存されているセッションIDを削除する
-	rdb := common.GetRDB()
 	if err := rdb.Del(c, sid).Err(); err != nil {
 		c.JSON(401, gin.H{"error": err.Error()})
 		return
@@ -153,7 +148,7 @@ func SessionAuthLogout(c *gin.Context) {
 }
 
 // ユーザー登録機能
-func UserRegister(c *gin.Context) {
+func UserRegisterHandler(c *gin.Context) {
 	var reqb RequestBody
 	// リクエストボディを構造体にシリアライズする(Ginの機能)
 	if err := c.ShouldBindJSON(&reqb); err != nil {
@@ -161,13 +156,11 @@ func UserRegister(c *gin.Context) {
 		return
 	}
 
-	id := common.GetULID()
+	id := GetULID()
 
 	// パスワードをハッシュ化
 	hashed, _ := bcrypt.GenerateFromPassword([]byte(reqb.Password), 10)
 
-	// DB接続プールを取得する
-	db := common.GetDB()
 	// idと"名前"、メールアドレス、ハッシュ化したパスワードをDBに保存する(ユーザー名のデフォルトをとりあえず"名前"しておく)
 	// 名前の決め方や何かいい案があれば教えてほしい
 	_, err := db.Exec("INSERT INTO users (id, name, email, password) VALUES (?,?,?,?)", id, "名前", reqb.Email, string(hashed))

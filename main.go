@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"github.com/joho/godotenv"
-	"github.com/aopontann/qin-todo/common"
 )
 
 func main() {
@@ -15,14 +14,14 @@ func main() {
 	}
 
 	// Google認証に必要な設定
-	common.GoogleAuthInit()
+	GoogleAuthInit()
 
 	// DBの初期化
-	db := common.Init()
+	MysqlInit()
 	// プールの切断
 	defer db.Close()
 
-	common.RedisInit()
+	RedisInit()
 
 	r := InitRouter()
 

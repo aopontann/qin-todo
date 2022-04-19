@@ -1,5 +1,5 @@
 // このファイルにはお試しで実装してみるイベントハンドラーやサンプルを作成する
-package handler
+package main
 
 import (
 	"encoding/json"
@@ -8,7 +8,6 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/aopontann/qin-todo/common"
 	"github.com/gin-gonic/gin"
 	"github.com/oklog/ulid/v2"
 	// "golang.org/x/crypto/bcrypt"
@@ -31,16 +30,14 @@ type RequestBody struct {
 	Password string `json:"password"`
 }
 
-func Pon(c *gin.Context) {
+func PonHandler(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "pong",
 	})
 }
 
 // 全てのToDoを取得する機能
-func GetTodoList(c *gin.Context) {
-	// DB接続プールを取得する
-	db := common.GetDB()
+func GetTodoListHandler(c *gin.Context) {
 	var (
 		id             string
 		content        string
@@ -83,14 +80,14 @@ func GetTodoList(c *gin.Context) {
 }
 
 // ユーザー情報取得機能(ハードコーディング版)
-func GetUserHardCode(c *gin.Context) {
+func GetUserHardCodeHandler(c *gin.Context) {
 	userInfo := UserInfo{Id: "id001", Name: "taro", Avatar_url: "https://lh3.googleusercontent.com/a-/AOh14Gg7m3sGmgDctni57nyWg6ATJLrSJNeT4mKIPtb_lxo=s96-C"}
 
 	c.JSON(200, userInfo)
 }
 
 // request body からメールとパスワードを取得してDBに保存する機能
-func PostUserDemo(c *gin.Context) {
+func PostUserDemoHandler(c *gin.Context) {
 	var reqb RequestBody
 	// byte(unit8)型の長さが2048のスライスを作成
 	buf := make([]byte, 2048)
@@ -111,8 +108,6 @@ func PostUserDemo(c *gin.Context) {
 	// 第2引数はコストを指定する。値は 4 ~ 31 の範囲である必要がある。
 	// コストについてはこの記事がわかりやすい。 → https://qiita.com/istsh/items/ca330d27fe51a6bf7a3d#2-%E3%82%B3%E3%82%B9%E3%83%88%E3%81%AE%E6%8C%87%E5%AE%9A
 	// hashed, _ := bcrypt.GenerateFromPassword([]byte(reqb.Password), 10)
-	// DB接続プールを取得する
-	db := common.GetDB()
 	// paswordはハッシュ化してDBに保存した方がいいが、今はそのまま保存するようにしておく。
 	_, err = db.Exec("INSERT INTO users (id, name, email, password) VALUES (?,?,?,?)", id.String(), "名前", reqb.Email, reqb.Password)
 	if err != nil {
@@ -124,7 +119,7 @@ func PostUserDemo(c *gin.Context) {
 }
 
 // Cookieをいじってみる
-func CookieDemo(c *gin.Context) {
+func CookieDemoHandler(c *gin.Context) {
 	var json RequestBody
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
