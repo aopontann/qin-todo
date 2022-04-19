@@ -11,10 +11,14 @@ func InitRouter() *gin.Engine {
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 
-	config := cors.DefaultConfig()
-	// すべてのオリジンを許可する(本番環境にデプロイするまでにちゃんと設定する)
-	config.AllowAllOrigins = true
-	r.Use(cors.New(config))
+	r.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"http://localhost:3000"},
+		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders: []string{"Origin", "Session-Id"},
+		ExposeHeaders: []string{"Content-Type", "Content-Length"},
+		AllowCredentials: true,
+		// MaxAge: 24 * time.Hour,
+	}))
 
 	r.GET("/ping", PonHandler)
 
@@ -26,31 +30,47 @@ func InitRouter() *gin.Engine {
 		// トークン取得エンドポイント
 		auth.GET("/token", GoogleAuthGetTokenHandler)
 
+		// ユーザー登録エンドポイント
 		auth.POST("/register", UserRegisterHandler)
 
+		// メールアドレスとパスワードでログイン
 		auth.POST("/login", SessionAuthLoginHandler)
 
+		// ログアウト
 		auth.POST("/logout", SessionAuthLogoutHandler)
-
 	}
 
 	user := r.Group("/users")
 	{
+		// sessionIDを使ってredisからユーザーIDを取得する
 		user.Use(MWGetUserID())
-		user.GET("/", GetUserHandler)
-		user.PUT("/", PutUserHandler)
+
+		// ユーザー情報を取得する
+		user.GET("", GetUserHandler)
+
+		// ユーザーの名前とアイコンを変更する
+		user.PUT("", PutUserHandler)
 	}
 
 	todo := r.Group("/todos")
 	{
 		todo.Use(MWGetUserID())
-		todo.GET("/", GetTodoHandler)
-		todo.POST("/", PostTodoHandler)
-		todoPutDelete := todo.Group("/")
+
+		// Todoリストを取得する
+		todo.GET("", GetTodoHandler)
+
+		// Todoを作成する
+		todo.POST("", PostTodoHandler)
+		todoPutDelete := todo.Group("/:todo_id")
 		{
+			// 指定されたTodoが認証されたユーザーが作成したものかチェックする
 			todoPutDelete.Use(TodoCheckUser())
-			todoPutDelete.PUT("/:todo_id", PutTodoHandler)
-			todoPutDelete.DELETE("/:todo_id", DeleteTodoHandler)
+
+			// Todo情報を更新する
+			todoPutDelete.PUT("", PutTodoHandler)
+
+			// Todoを削除する
+			todoPutDelete.DELETE("", DeleteTodoHandler)
 		}
 	}
 
