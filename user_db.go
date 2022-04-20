@@ -21,3 +21,27 @@ func GetUser(userId string) (GetUserResponse, error) {
 	}
 	return GetUserResponse{id, name, email, ""}, nil
 }
+
+func DeleteUser(userId string) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec("DELETE FROM todo_list WHERE user_id = ?", userId)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec("DELETE FROM users WHERE id = ? LIMIT 1", userId)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+	return nil
+}
