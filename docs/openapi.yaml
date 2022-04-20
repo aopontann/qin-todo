@@ -67,21 +67,115 @@ paths:
                 x-examples:
                   example-1:
                     error: session invailed
-              examples:
-                example-1:
-                  value:
-                    error: string
+              examples: {}
       parameters:
         - schema:
             type: string
           in: cookie
           name: session
-          description: セッションID
-          required: true
-      tags:
-        - user
+          description: CookieかヘッダーにセッションIDを含める必要がある
+        - schema:
+            type: string
+          in: header
+          description: CookieかヘッダーにセッションIDを含める必要がある
+          name: Session-Id
       description: セッションIDを使ってユーザー情報を取得する
+      tags:
+        - users
     parameters: []
+    put:
+      summary: ''
+      operationId: put-users
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: セッションIDが無効である場合
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  error:
+                    type: string
+                    minLength: 1
+                required:
+                  - error
+                x-examples:
+                  example-1:
+                    error: string
+      tags:
+        - users
+      description: ユーザーの名前とアイコン画像を変更(未実装)
+      parameters:
+        - schema:
+            type: string
+          in: header
+          name: Session-Id
+          description: CookieかヘッダーにセッションIDを含める必要がある
+        - schema:
+            type: string
+          in: cookie
+          name: session
+          description: CookieかヘッダーにセッションIDを含める必要がある
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                imageBase64:
+                  type: string
+                  minLength: 1
+              required:
+                - name
+                - imageBase64
+              x-examples:
+                example-1:
+                  name: string
+                  imageBase64: string
+        description: 未実装であるため、スキーマを変更する可能性がある
+    delete:
+      summary: ''
+      operationId: delete-users
+      responses:
+        '200':
+          description: 退会成功
+        '401':
+          description: セッションIDが無効である場合
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  error:
+                    type: string
+                    minLength: 1
+                required:
+                  - error
+                x-examples:
+                  example-1:
+                    error: string
+      tags:
+        - users
+      description: ユーザーの退会
+      parameters:
+        - schema:
+            type: string
+          in: header
+          name: Session-Id
+          description: CookieかヘッダーにセッションIDを含める必要がある
+        - schema:
+            type: string
+          in: cookie
+          name: session
+          description: CookieかヘッダーにセッションIDを含める必要がある
   /auth/login:
     post:
       summary: ログイン
@@ -462,8 +556,12 @@ paths:
             type: string
           in: cookie
           name: session
-          description: セッション ID
-          required: true
+          description: CookieかヘッダーにセッションIDを含める必要がある
+        - schema:
+            type: string
+          in: header
+          name: Session-Id
+          description: CookieかヘッダーにセッションIDを含める必要がある
     post:
       summary: ToDo作成
       operationId: post-todos
@@ -510,8 +608,12 @@ paths:
             type: string
           in: cookie
           name: session
-          description: セッションID
-          required: true
+          description: CookieかヘッダーにセッションIDを含める必要がある
+        - schema:
+            type: string
+          in: header
+          name: Session-Id
+          description: CookieかヘッダーにセッションIDを含める必要がある
       requestBody:
         content:
           application/json:
@@ -611,8 +713,12 @@ paths:
             type: string
           in: cookie
           name: session
-          description: セッションID
-          required: true
+          description: CookieかヘッダーにセッションIDを含める必要がある
+        - schema:
+            type: string
+          in: header
+          description: CookieかヘッダーにセッションIDを含める必要がある
+          name: Session-Id
       requestBody:
         content:
           application/json:
@@ -695,7 +801,7 @@ paths:
       operationId: delete-todos-todo_id
       responses:
         '200':
-          description: 　削除成功
+          description: 削除成功
         '401':
           description: セッションIDが無効である場合
           content:

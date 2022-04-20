@@ -3,5 +3,6 @@ tmp
 .env
 client_secret.json
 gcs_secret.json
+admin_gcs_key.json
 token.json
 .DS_Store

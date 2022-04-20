@@ -48,8 +48,11 @@ func InitRouter() *gin.Engine {
 		// ユーザー情報を取得する
 		user.GET("", GetUserHandler)
 
-		// ユーザーの名前とアイコンを変更する
+		// ユーザーの名前とアイコンを変更する(実装中)
 		user.PUT("", PutUserHandler)
+
+		// ユーザー退会機能
+		user.DELETE("", DeleteUserHandler)
 	}
 
 	todo := r.Group("/todos")
