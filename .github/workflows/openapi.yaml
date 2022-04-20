@@ -25,7 +25,7 @@ jobs:
         run: npm install -g redoc-cli
 
       - name: build OpenAPI file
-        run: redoc-cli bundle ./doc/openapi.yaml
+        run: redoc-cli bundle ./docs/openapi.yaml
 
       - id: 'auth'
         name: 'Authenticate to Google Cloud'
