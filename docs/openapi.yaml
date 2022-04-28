@@ -417,7 +417,7 @@ paths:
                       email: test2@example.com
                       password: test123
         '400':
-          description: 既に使われているメールアドレスで登録しようとしたときのエラー
+          description: バリデーションエラーや既に使われているメールアドレスで登録しようとしたときのエラー
           content:
             application/json:
               schema:
@@ -462,7 +462,7 @@ paths:
                 value:
                   email: test@example.com
                   password: test123
-        description: ''
+        description: emailには、メールアドレス形式の文字列を指定する。passwordには6文字以上のASCIIの英数字のみを指定する。
       description: メールアドレスとパスワードでユーザー登録をする
   /todos:
     get:
@@ -801,7 +801,7 @@ paths:
       operationId: delete-todos-todo_id
       responses:
         '200':
-          description: 削除成功
+          description: 　削除成功
         '401':
           description: セッションIDが無効である場合
           content:
