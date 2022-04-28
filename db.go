@@ -17,7 +17,7 @@ func MysqlInit() {
 	var err error
 	db, err = sql.Open("mysql", "user1:pass@tcp(mysql:3306)/qin-todo")
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("connect error: %s\n", err.Error())
 	}
 	err = db.Ping()
 	if err != nil {
@@ -32,3 +32,6 @@ func RedisInit() {
 		DB:       0,  // use default DB
 	})
 }
+
+// wget https://dl.google.com/go/go1.18.1.linux-amd64.tar.gz
+// sudo tar -xvf go1.18.1.linux-amd64.tar.gz
