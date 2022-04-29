@@ -1,4 +1,4 @@
-FROM golang:1.17.9
+FROM golang:1.18.1
 
 WORKDIR /app
 
@@ -10,7 +10,7 @@ RUN go mod download
 RUN go install github.com/pressly/goose/v3/cmd/goose@latest
 
 # Golang ホットリロードするためインストールする
-RUN go get -u github.com/cosmtrek/air
+RUN go install github.com/cosmtrek/air@latest
 
 # gitをインストール(vscodeの拡張機能「remote - Containers」を使って開発する場合)
 # RUN apt-get install git
