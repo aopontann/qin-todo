@@ -11,13 +11,15 @@ services:
     tty: true
     # ホストPCとコンテナ内とのデータの同期
     volumes:
-      - ./:/app/
+      - ./go.mod:/app/go.mod
+      - ./go.sum:/app/go.sum
+      - ./backend:/app/backend
     ports:
       - 18080:8080
     depends_on:
       - db
     # 開発環境の起動
-    command: "air -c .air.toml"
+    command: "air -c backend/.air.toml"
 
   db: # qin-memo-backendのやつを参考にする
     image: mysql:5.7 # mysql:8.0でもいいかも
