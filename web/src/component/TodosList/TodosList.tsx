@@ -1,29 +1,25 @@
 import React from 'react';
+import { useTodoContext } from 'context/TodoContext';
 import { Todo } from 'component/Todo';
 
-interface Props {
-  todosList: {
-    title: string;
-    category: string;
-    todos: string[];
-  }[];
-}
+export const TodosList = () => {
+  const { todosList, ref } = useTodoContext();
 
-export const TodosList: React.VFC<Props> = ({ todosList }) => {
   return (
-    <div>
-      {todosList.map((todosItem, index) => (
-        <section className='my-4' key={index}>
-          <h2>{todosItem.title}</h2>
+    <div className='grid gap-8'>
+      {todosList.map((todosItem, i) => (
+        <section className={`${todosItem.color} grid gap-2`} key={i}>
+          <p className={`text-h2 font-bold text-current`}>{todosItem.label}</p>
           <ul>
-            {todosItem.todos.map((todo, index) => (
-              <li key={index}>
+            {todosItem.todos.map((todo, i) => (
+              <li key={i}>
                 <Todo todo={todo} />
               </li>
             ))}
-            {/* タスクが一個以上で非表示にするクラスをつける PCは常に表示 */}
-            <li className={todosItem.todos.length > 0 ? 'hidden md:block' : undefined}>
-              <button>タスクを追加する</button>
+            <li className={todosItem.todos.length ? 'hidden md:block' : ''}>
+              <button className='text-gray' onClick={() => ref.current?.focus()}>
+                タスクを追加する
+              </button>
             </li>
           </ul>
         </section>

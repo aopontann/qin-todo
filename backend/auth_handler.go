@@ -16,17 +16,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type GoogleUserInfo struct {
-	ID            string `json:"id"`
-	Email         string `json:"email"`
-	VerifiedEmail bool   `json:"verified_email"`
-	Name          string `json:"name"`
-	GivenName     string `json:"given_name"`
-	FamilyName    string `json:"family_name"`
-	Picture       string `json:"picture"`
-	Locale        string `json:"locale"`
-}
-
 func GoogleAuthRedirectHandler(c *gin.Context) {
 	url := Conf.AuthCodeURL("state", oauth2.AccessTypeOffline)
 	c.Redirect(http.StatusMovedPermanently, url)
@@ -83,7 +72,7 @@ func SessionAuthLoginHandler(c *gin.Context) {
 		id   string
 		pass string
 	)
-	var reqb RequestBody
+	var reqb UserLoginReqb
 	// リクエストボディを構造体にシリアライズする(Ginの機能)
 	err := c.ShouldBindJSON(&reqb)
 	if err != nil {
@@ -149,7 +138,7 @@ func SessionAuthLogoutHandler(c *gin.Context) {
 
 // ユーザー登録機能
 func UserRegisterHandler(c *gin.Context) {
-	var reqb RequestBody
+	var reqb UserRegisterReqb
 	// リクエストボディを構造体にシリアライズする(Ginの機能)
 	if err := c.ShouldBindJSON(&reqb); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
@@ -162,7 +151,6 @@ func UserRegisterHandler(c *gin.Context) {
 	hashed, _ := bcrypt.GenerateFromPassword([]byte(reqb.Password), 10)
 
 	// idと"名前"、メールアドレス、ハッシュ化したパスワードをDBに保存する(ユーザー名のデフォルトをとりあえず"名前"しておく)
-	// 名前の決め方や何かいい案があれば教えてほしい
 	_, err := db.Exec("INSERT INTO users (id, name, email, password) VALUES (?,?,?,?)", id, "名前", reqb.Email, string(hashed))
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
